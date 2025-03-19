@@ -6,25 +6,25 @@ This project aims to use an existing LLM, »fine-tune« it, leverage prompt engi
 
 Methodology
 
-6. Literature Review: Conduct a thorough review of existing research and select appropriate LLMs for the task. Review and prepare an exploratory report on the data provided.
+1. Literature Review: Conduct a thorough review of existing research and select appropriate LLMs for the task. Review and prepare an exploratory report on the data provided.
 
-7. Initial solution: Try to solve the task initially only by using prompt engineering techniques.
+2. Initial solution: Try to solve the task initially only by using prompt engineering techniques.
 
-8. Evaulation definition: Define (semi-)automatic evaluation criteria and implement it. Take the following into account: identification of important news, correct roads namings, correct filtering, text lengths and words, ...
+3. Evaulation definition: Define (semi-)automatic evaluation criteria and implement it. Take the following into account: identification of important news, correct roads namings, correct filtering, text lengths and words, ...
 
-9. LLM (Parameter-efficient) fine-tuning: Improve an existing LLM to perform the task automatically. Provide an interface to do an interactive test.
+4. LLM (Parameter-efficient) fine-tuning: Improve an existing LLM to perform the task automatically. Provide an interface to do an interactive test.
 
-10. Evaluation and Performance Analysis: Assess the effectiveness of each technique by measuring improvements in model performance, using appropriate automatic (P, R, F1) and human evaluation metrics.
+5. Evaluation and Performance Analysis: Assess the effectiveness of each technique by measuring improvements in model performance, using appropriate automatic (P, R, F1) and human evaluation metrics.
 
 Recommended Literature
 
-· Lab session materials · RTV Slo data: LINK (zip format). The data consists of:
+- Lab session materials · RTV Slo data: LINK (zip format). The data consists of:
 
-o Promet.si input resources (Podatki - PrometnoPorocilo_2022_2023_2024.xlsx).
+- Promet.si input resources (Podatki - PrometnoPorocilo_2022_2023_2024.xlsx).
 
-o RTV Slo news texts to be read through the radio stations (Podatki - rtvslo.si).
+- RTV Slo news texts to be read through the radio stations (Podatki - rtvslo.si).
 
-o Additional instructions for the students that manually type news texts (PROMET, osnove.docx, PROMET.docx).
+- Additional instructions for the students that manually type news texts (PROMET, osnove.docx, PROMET.docx).
 
 
 EXTRA INSTRUCTIONS:
