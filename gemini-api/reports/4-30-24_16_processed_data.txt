@@ -1,6 +1,13 @@
+REPORT_TIME: Podatki zajeti od 16:53 do 16:53, poročilo za 17:00
+
 B1: Nesreče Na dolenjski avtocesti je pred Višnjo Goro proti Novemu mestu zaprt prehitevalni pas. Nastaja zastoj, zamuda 15 minut. Na dolenjski avtocesti je pred Grosupljim vzhod proti Novemu mestu zaprt prehitevalni pas. Ovire Na dolenjski avtocesti je pred Smednikom proti Obrežju oviran promet, pnevmatika. Tovorna vozila Zaradi praznikov bo med 8. in 22. uro omejitev prometa tovornih vozil, katerih največja dovoljena masa presega 7,5 t: - v sredo, 1. maja; - v četrtek, 2. maja. Delo na cesti Ljubljana, Dunajska cesta, popolne zapore do 7. maja: - v noči na nedeljo med 21. in 5. uro, - v noči na sredo med 21. in 5. uro. Več o delovnih zaporah v prometni napovedi .
+
 C2: Buy vignette for Slovenia online Thererore long queues are expected in entering points from Austria to Slovenia, i.e. Karavanke tunnel (A2) and Sentilj/Spielfeld crossing (A1). Important reason for these queues is that drivers don't have vignette for Slovenian roads and have to buy them at the border. To reduce or even avoid long waiting periods drivers are strongly recommended to buy vignette for Slovenian motorways online. They can do it here .
+
 ContentNesreceSLO: Na dolenjski avtocesti je pred Višnjo Goro proti Novemu mestu zaprt prehitevalni pas. Nastaja zastoj, zamuda 15 minut. Na dolenjski avtocesti je pred Grosupljim vzhod proti Novemu mestu zaprt prehitevalni pas.
+
 ContentOvireSLO: Na dolenjski avtocesti je pred Smednikom proti Obrežju oviran promet, pnevmatika.
+
 ContentDeloNaCestiSLO: Ljubljana, Dunajska cesta, popolne zapore do 7. maja: - v noči na nedeljo med 21. in 5. uro, - v noči na sredo med 21. in 5. uro. Več o delovnih zaporah v prometni napovedi .
+
 TitleOpozorilaSLO: Prireditve

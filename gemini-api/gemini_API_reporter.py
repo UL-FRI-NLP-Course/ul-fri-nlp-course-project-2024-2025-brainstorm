@@ -20,70 +20,73 @@ genai.configure(api_key=API_KEY)
 
 # Define the 5 different prompt approaches
 PROMPT_APPROACHES = {
-    "template_enforcement": lambda example: f"""Si zaposlen na RTVSlo in odgovoren za prometna poročila. 
-Struktura poročila MORA biti:
-[Datumska glava] 
-[Nesreče] (najpomembnejše, vsaka v lastni kratki alineji)
-[Zastoji] (glavne lokacije)
-[Ovire] 
-[Delo na cesti] 
-[Opozorila] (vključno s tovornjaki)
-Brez podnaslovov. Uporabi naravno slovenski jezik brez robotaškega tona. Primer strukture: 
+    "combined prompt": lambda example: f"""You are an employee at RTVSlo responsible for generating radio traffic information. Your task is to create concise, accurate, and stylistically correct traffic reports in Slovenian based on provided input data.
 
+INPUT DATA HANDLING:
+- Assume the input data is a list of traffic events, potentially unstructured or semi-structured (e.g., raw text reports, lists). Each event ideally includes type (accident, jam, obstacle, roadwork), location, direction, description, and a timestamp.
+- Prioritize recency: If multiple reports exist for the same location, use the information from the report with the latest timestamp relevant to the report time ([date] [time]).
+- Extract key information: Identify the type of incident, precise location (road name/number, section, kilometer marker if available), direction of travel, and consequences (lane closures, delay times, type of obstruction).
+- Handle missing information: If specific details (like exact delay times) are missing in the input, report the situation generally (e.g., "Zastoj je daljši," "Promet je močno oviran") rather than inventing details. Do not report incidents where essential information like location or type is completely missing.
+
+LANGUAGE CONSTRAINTS:
+- Use only active voice constructions (e.g., "Zaprta je..." [It is closed], not "Pas je zaprt" [The lane is closed]).
+- Always mention locations with the direction of travel (e.g., "proti Ljubljani" [towards Ljubljana], "proti Kopru" [towards Koper]).
+- Use the precise date and time format: "DD. M. YYYY ob HH:MM" (e.g., "29. 6. 2024 ob 14:00").
+- Avoid English expressions; use Slovenian equivalents (e.g., "zastoj" instead of "delay", "gneča" instead of "traffic jam" unless specifically referring to a long standstill as "zastoj").
+- Use standard phrases: "oviran promet" (obstructed traffic), "nastaja zastoj" (traffic jam is forming), "promet poteka počasi" (traffic is slow).
+- Include specific traffic status descriptions when available: "promet poteka po odstavnem pasu" (traffic flows on the emergency lane), "zaprta sta vozni in počasni pas" (driving and slow lanes are closed).
+- Use "prometne informacije" (traffic information) for the report title, not "prometno poročilo" (traffic report).
+- Include specific delay times when available and significant: "Čas potovanja se podaljša za približno 30 minut". Use standard time references: "predvidoma do 20. ure" (expected until 8 PM).
+
+CONTENT FILTERING AND SIGNIFICANCE:
+- Only include significant traffic incidents. Define "significant" as:
+    - Accidents causing lane closures or delays estimated at 15 minutes or more, if not provided in data do not report.
+    - Traffic jams resulting in delays estimated at 20 minutes or more, or those described as "daljši zastoj" (long jam) or "močan zastoj" (heavy jam) in the source data.
+    - Obstacles completely blocking a lane or posing a direct safety hazard (e.g., large debris, stopped vehicle in a dangerous spot like a tunnel or before a bend).
+    - Roadworks only if they are causing active, significant delays (approx. 15+ min) at the time of the report OR if they involve complete closures starting or ending today. Do not include routine, long-term roadworks unless they meet these criteria for the current reporting time.
+    - If time estimates are not provided, use the following guidelines:
+        - For accidents: Report if the situation is serious enough to cause significant delays or lane closures if provided in the data, if not do not report.
+        - For traffic jams: Report if the situation is serious enough to cause significant delays or lane closures if provided in the data, if not do not report.
+        - For obstacles: Report if the situation is serious enough to cause significant delays or lane closures if provided in the data, if not do not report.
+        - For roadworks: Report if the situation is serious enough to cause significant delays or lane closures if provided in the dat), if not do not report.
+- Filter based on report time: Exclude any incidents confirmed as resolved before the specified report time "[date] [time]". Ignore roadworks planned for the future or completed in the past relative to the report time.
+
+STYLISTIC APPROACH AND FORMATTING:
+- Use short, informative sentences focused on location and impact.
+- Start the entire report directly with "Prometne informacije [date] [time] za 1., 2. in 3. program Radia Slovenija." (Fill in the actual date and time). No preceding text.
+- Immediately following the header line, include the standalone line "Podatki o prometu.".
+- Ensure a single blank line follows "Podatki o prometu." before the first traffic item.
+- Group all reports for a specific road together (e.g., all traffic jams on the A1 Primorska highway appear consecutively). 
+- Keep paragraphs concise, focusing on one specific event or a set of closely related events on the same road section (max 2-3 sentences typically).
+- Strictly avoid markdown formatting, bullet points, numbered lists, HTML tags, or any visual separators in the final output. Use plain text only.
+- Do not include category headings (like "Nesreče:", "Zastoji:") in the final output. The structure must be maintained implicitly by the order of the paragraphs.
+- Use standard phrasing for reopened roads: "je spet prevozna" or "je spet odprta". Place significant reopening information at the end of the report, possibly in the final "Warnings/Restrictions/Reopenings" section.
+- End paragraphs describing accidents or dangerous obstacles with "Opozarjamo na nevarnost naleta." where appropriate (i.e., where traffic is stopped or slowed abruptly). Do not add this warning if the incident is just a slow-down without stationary vehicles or if the hazard is minor.
+- Maintain a neutral, factual, and clear tone appropriate for a public broadcast. Avoid sensationalism.
+- IMPORTANT! Keep the report concise, ideally under 1 minute of reading time.
+- Do not include ALL of the data in the report. Only include the most relevant and significant information. The goal is to provide a clear and concise summary of the traffic situation without overwhelming details.
+- Group incidents together based on report structure order. All accidents are one paragraph, all traffic jams are another, etc. Do not mix them in the same paragraph. DO NOT WRITE EVERYTHING IN ONE LINE. Make it readable and easy to follow. For a radio report, it should be clear and easy to understand.
+- Do not include any additional information or commentary outside the specified structure. The report should be purely factual and focused on the traffic situation.
+- VERY IMPORTANT! - Avoid excessive repetition of events. If a road is closed due to an accident, do not repeat the same information in the Traffic jams or roadworks sections. Instead, summarize the situation in a single sentence. And do not report the same event multiple times in different sections (e.g., once as an accident and again as closed lane or traffic jam).
+
+
+REPORT STRUCTURE (Implicit Order - No Headings in Output):
+1. Header: "Prometne informacije [date] [time] za 1., 2. in 3. program Radia Slovenija."
+2. Standalone Line: "Podatki o prometu."
+3. Blank Line
+4. Accidents (Significant accidents. Prioritize human impact/blockages.)
+5. Traffic Jams (Only significant delays as defined above. Include obstacles causing delays.)
+6. Roadworks (Only those causing significant delays today or full closures starting/ending today.)
+7. Warnings / Restrictions / Reopenings (General warnings like weather impacts if severe, truck restrictions (e.g., weight/timing), information on major roads being reopened, buying of Vinjeta.)(Keep very short.)
+
+EXAMPLES:
+Here are examples demonstrating the desired structure and style:
 {example}
 
-Iz danih podatkov sestavi poročilo po zgornji strukturi. Počakaj na podatke.""",
-
-    "style_mimicry": lambda example: f"""Si zaposlen na RTVSlo in odgovoren za prometna poročila.
-Posnemi natančno stil primerjave: 
-- Uporabi kratke, informativne stavke z lokacijami v krepkem
-- Začni neposredno z "Prometne informacije [datum] [ura]"
-- Združuj podobne incidente (npr. "na primorski avtocesti..." pokrij vse primorske primere skupaj)
-- Izbeguj markdown, uporabi samo ** za poudarke
-Tvoj izhod naj zgleda kot neposreden nadaljevanje tega primera: 
-
-{example}
-
-Počakaj na podatke.""",
-
-    "content_prioritization": lambda example: f"""Si zaposlen na RTVSlo in odgovoren za prometna poročila.
-Hierarhija vsebine:
-1. Najprej navedi VSE nesreče z natančnimi lokacijami in posledicami
-2. Nato zastoji po pomembnosti (avtoceste > regionalne ceste)
-3. Dela na cestah kronološko (trenutna > prihodnja)
-4. Opozorila samo če direktno vplivajo na promet
-Formatiraj kot tekstočni poročevalec RTVSlo - brez številk, seznamov ali HTML. Primer pravilne ureditve: 
-
-{example}
-
-Počakaj na podatke.""",
-
-    "linguistic_constraints": lambda example: f"""Si zaposlen na RTVSlo in odgovoren za prometna poročila.
-Jezične omejitve:
-- Uporabi samo aktivne konstrukcije ("Zaprta je...", ne "Pas je zaprt")
-- Lokacije vedno navedi s smerjo gibanja ("proti Ljubljani")
-- Za čas uporabi format "29. 6. 2024 ob 14:00" (ne "14:00 29/6/24")
-- Izbegaj angleške izraze ("zastoj" ne "delay")
-Prikaži informacije iz vhodnih podatkov v tem jezikovnem okviru. Primer: 
-
-{example}
-
-Počakaj na podatke.""",
-
-    "structured_input_output": lambda example: f"""Si zaposlen na RTVSlo in odgovoren za pripravo prometnih poročil.  
-- IZ PODATKOV izlušči ključne kategorije:  
-  1) Nesreče, 2) Zastoji, 3) Ovire, 4) Delo na cesti, 5) Opozorila, 6) Tovorna vozila, 7) Vreme/Drugo.  
-- Poročilo oblikuj kot tekočo, humanizirano novico:  
-  • Odpri z datumom in uro,  
-  • "Nesreče:" postavi na začetek,  
-  • nato "Zastoji:", itd.,  
-  • vsako kategorijo zapiši v enem odstavku brez dodatnih naslovkov.
-  
-Primer:
-{example}
-
-Počakaj na podatke."""
+EXECUTION:
+Using the provided data, compose a report in Slovenian language that could be read on the radio, strictly following all the above instructions, structure, and constraints. Stick to the provided examples as closly as possible in terms of formatting. If the report is over 800 characters you will be fired as a RTVSlo reporter. Wait for the data input.""" ,
 }
+
 
 def initialize_chat_session(prompt_type, example_output):
     """Initialize a chat session with Gemini and provide an example output format."""
@@ -223,16 +226,36 @@ def process_csv_with_multiple_prompts():
         # Create reports directory structure
         for prompt_type in PROMPT_APPROACHES.keys():
             os.makedirs(os.path.join("reports", prompt_type), exist_ok=True)
-        
-        # Read example output file
-        example_path = os.path.join(os.getcwd(), "..", "data_preprocessing", "Small_dataset", "out1.txt")
-        print(f"Example output file path: {example_path}")
-        if not os.path.exists(example_path):
-            print(f"Error: Example output file {example_path} not found")
+
+        # Read all .txt files in Small_dataset folder that contain out in their name
+        txt_files = glob.glob(os.path.join(data_dir, "*.txt"))
+        out_files = [f for f in txt_files if "out" in os.path.basename(f)]
+
+        if not out_files:
+            print("No example output files found in the data directory.")
             return
+        
+        # Read all example outputs and store them together with \n\n as separator into example_output
+        example_output = ""
+
+        for out_file in out_files:
+            with open(out_file, "r", encoding="utf-8") as f:
+                example_output += f.read() + "\n\n"
+
+
+        print(f"Example output files found: {len(out_files)}")
+        print(f"Example output files content:\n{example_output}")
+
+                
+        # Read example output file
+        # example_path = os.path.join(os.getcwd(), "..", "data_preprocessing", "Small_dataset", "out1.txt")
+        # print(f"Example output file path: {example_path}")
+        # if not os.path.exists(example_path):
+        #     print(f"Error: Example output file {example_path} not found")
+        #     return
             
-        with open(example_path, "r", encoding="utf-8") as f:
-            example_output = f.read().strip()
+        # with open(example_path, "r", encoding="utf-8") as f:
+        #     example_output = f.read().strip()
         
         # Process each date group
         date_groups = df['DateGroup'].unique()
@@ -246,6 +269,26 @@ def process_csv_with_multiple_prompts():
             
             # Get all rows for this date group
             group_df = df[df['DateGroup'] == date_group].copy()
+            
+            # Extract time range information for report header
+            min_time = "Unknown"
+            max_time = "Unknown"
+            report_hour = "Unknown"
+            
+            try:
+                # Get the earliest and latest times in this group
+                if 'Datum' in group_df.columns and not group_df['Datum'].empty:
+                    times = [parse(d) for d in group_df['Datum'].dropna() if pd.notna(d)]
+                    if times:
+                        min_time = min(times).strftime("%H:%M")
+                        max_time = max(times).strftime("%H:%M")
+                        # Report hour is the next hour (rounded up)
+                        next_hour = max(times).replace(minute=0, second=0, microsecond=0)
+                        if max(times).minute > 0 or max(times).second > 0:
+                            next_hour = next_hour.replace(hour=next_hour.hour + 1)
+                        report_hour = next_hour.strftime("%H:00")
+            except Exception as e:
+                print(f"Error extracting time range: {e}")
             
             # Add a delay between date groups (except for the first group)
             if i > 0:
@@ -265,35 +308,53 @@ def process_csv_with_multiple_prompts():
                 'TitleOpozorilaSLO', 'ContentOpozorilaSLO'
             ]
             
+            # Improved handling of duplicates - keep all unique content
             for col in content_columns:
                 if col in group_df.columns:
-                    # Combine all non-null values and remove duplicates
-                    all_values = group_df[col].dropna().unique().tolist()
-                    if all_values:
-                        merged_data[col] = all_values
+                    # Get all non-null values
+                    values = [v for v in group_df[col].dropna().tolist() if str(v).upper() != "NULL" and str(v).strip() != ""]
+                    
+                    # Remove actual duplicates while preserving order
+                    unique_values = []
+                    seen = set()
+                    for value in values:
+                        # Clean HTML tags and normalize whitespace for comparison
+                        cleaned = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', str(value))).strip()
+                        if cleaned not in seen and cleaned:
+                            seen.add(cleaned)
+                            unique_values.append(value)
+                    
+                    if unique_values:
+                        merged_data[col] = unique_values
             
             # Convert merged data to a clean string format
             clean_data = []
-            for col, values in merged_data.items():
-                # Add only the first non-empty value for each column
-                for value in values:
-                    if pd.notna(value) and str(value).upper() != "NULL" and str(value).strip() != "":
-                        # Clean HTML tags
-                        value = re.sub(r'<[^>]+>', ' ', str(value))
-                        # Remove excessive whitespace
-                        value = re.sub(r'\s+', ' ', value).strip()
-                        clean_data.append(f"{col}: {value}")
-                        break
             
-            row_data = "\n".join(clean_data)
+            # Add time range information at the beginning
+            time_info = f"REPORT_TIME: Podatki zajeti od {min_time} do {max_time}, poročilo za {report_hour}"
+            clean_data.append(time_info)
+            
+            for col, values in merged_data.items():
+                # Include all unique values for each column
+                for value in values:
+                    # Clean HTML tags
+                    value = re.sub(r'<[^>]+>', ' ', str(value))
+                    # Remove excessive whitespace
+                    value = re.sub(r'\s+', ' ', value).strip()
+                    if value:  # Skip empty strings
+                        clean_data.append(f"{col}: {value}")
+            
+            row_data = "\n\n".join(clean_data)
             
             # Estimate token count and display
             token_estimate = estimate_token_count(row_data)
             total_token_count += token_estimate
             print(f"\n=== TOKEN ESTIMATION ===")
             print(f"Group: {date_group}")
+            print(f"Report time: {report_hour}")
+            print(f"Data time range: {min_time} to {max_time}")
             print(f"Text length: {len(row_data)} characters")
-            print(f"Estimated token count: {token_estimate} tokens")
+            print(f"Token count: {token_estimate} tokens (via Google's API)")
             print(f"======================")
             
             # Save the processed data for reference
@@ -333,7 +394,6 @@ def process_csv_with_multiple_prompts():
         print(f"Error processing {file_name}: {str(e)}")
         import traceback
         traceback.print_exc()
-
 if __name__ == "__main__":
     print("Starting Gemini Traffic Reporter with Multiple Prompt Approaches")
     process_csv_with_multiple_prompts()
