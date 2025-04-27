@@ -3,10 +3,7 @@ import glob
 import pandas as pd
 import google.generativeai as genai
 from dotenv import load_dotenv
-import time
-from datetime import datetime
-from dateutil.parser import parse
-import re
+import concurrent.futures
 
 # Load environment variables and API key
 load_dotenv()
@@ -143,36 +140,8 @@ def generate_traffic_report(chat, row_data, prompt_type):
         else:
             return f"Error generating report: {e}"
 
-def display_countdown(seconds):
-    """Display a countdown timer for the specified number of seconds."""
-    print(f"\nWaiting {seconds} seconds before processing next row...")
-    start_time = time.time()
-    end_time = start_time + seconds
-    
-    try:
-        while time.time() < end_time:
-            remaining = int(end_time - time.time())
-            current_time = datetime.now().strftime("%H:%M:%S")
-            print(f"\rCurrent time: {current_time} | Time remaining: {remaining} seconds until next API call...", end="")
-            time.sleep(1)
-        print("\nDelay complete. Continuing processing...")
-    except KeyboardInterrupt:
-        print("\nCountdown interrupted. Continuing...")
-        return
-
-def estimate_token_count(text, model_name='gemini-2.0-flash'):
-    """Get accurate token count using Google's API."""
-    try:
-        model = genai.GenerativeModel(model_name)
-        response = model.count_tokens(text)
-        return response.total_tokens
-    except Exception as e:
-        # Fall back to estimation if API call fails
-        print(f"Error counting tokens: {e}")
-        return len(text) // 4  # Fallback to simple estimation
-
 def process_csv_with_multiple_prompts():
-    """Process the CSV file with multiple prompt approaches, grouping by date/time."""
+    """Process the CSV file with multiple prompt approaches."""
     # Path to data folder
     data_dir = os.path.join(os.getcwd(), "..", "data_preprocessing", "Small_dataset")
     
@@ -184,7 +153,7 @@ def process_csv_with_multiple_prompts():
         return
     
     # Get all CSV files in the data folder
-    csv_files = glob.glob(os.path.join(data_dir, "in.csv"))
+    csv_files = glob.glob(os.path.join(data_dir, "in_tmp.csv"))
     
     if not csv_files:
         print("No CSV files found in the data directory.")
@@ -198,27 +167,6 @@ def process_csv_with_multiple_prompts():
     try:
         # Read CSV file
         df = pd.read_csv(file_path, encoding="utf-8", sep=";")
-        
-        # Drop unnecessary columns to save on tokens but KEEP A1-C2
-        columns_to_drop = ['LegacyId', 'Operater',
-                          'TitleVremeSLO', 'ContentVremeSLO', 
-                          'TitleMednarodneInformacijeSLO', 'ContentMednarodneInformacijeSLO', 
-                          'TitleSplosnoSLO', 'ContentSplosnoSLO']
-        
-        df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
-        
-        # Group by date (extract only date part, ignoring minor time differences)
-        def extract_date_group(date_str):
-            if pd.isna(date_str):
-                return None
-            try:
-                date = parse(date_str)
-                # Group by date and hour only (ignoring minutes)
-                return f"{date.month}/{date.day}/{str(date.year)[2:]} {date.hour}"
-            except:
-                return None
-        
-        df['DateGroup'] = df['Datum'].apply(extract_date_group)
         
         # Create reports directory structure
         for prompt_type in PROMPT_APPROACHES.keys():
@@ -234,79 +182,23 @@ def process_csv_with_multiple_prompts():
         with open(example_path, "r", encoding="utf-8") as f:
             example_output = f.read().strip()
         
-        # Process each date group
-        date_groups = df['DateGroup'].unique()
-        total_token_count = 0
+        # Initialize chat sessions for each prompt approach
+        chat_sessions = {}
+        for prompt_type in PROMPT_APPROACHES.keys():
+            chat_sessions[prompt_type] = initialize_chat_session(prompt_type, example_output)
         
-        for i, date_group in enumerate(date_groups):
-            if pd.isna(date_group):
+        # Process each row in the CSV
+        for index, row in df.iterrows():
+            # Skip header row if present
+            if index == 0 and "header" in str(row).lower():
                 continue
                 
-            print(f"\nProcessing date group: {date_group}")
+            print(f"\nProcessing row {index+1} with all prompt approaches")
             
-            # Get all rows for this date group
-            group_df = df[df['DateGroup'] == date_group].copy()
+            # Convert row data to a cleaner string format
+            row_data = "\n".join([f"{col}: {value}" for col, value in row.items() 
+                                 if pd.notna(value) and str(value).upper() != "NULL"])
             
-            # Add a delay between date groups (except for the first group)
-            if i > 0:
-                display_countdown(70)
-            
-            # Merge content from all rows in the group, removing duplicates
-            merged_data = {}
-            
-            # Content columns to merge - include A1-C2
-            content_columns = [
-                'A1', 'B1', 'C1', 'A2', 'B2', 'C2',
-                'TitlePomembnoSLO', 'ContentPomembnoSLO',
-                'TitleNesreceSLO', 'ContentNesreceSLO',
-                'TitleZastojiSLO', 'ContentZastojiSLO',
-                'TitleOvireSLO', 'ContentOvireSLO',
-                'TitleDeloNaCestiSLO', 'ContentDeloNaCestiSLO',
-                'TitleOpozorilaSLO', 'ContentOpozorilaSLO'
-            ]
-            
-            for col in content_columns:
-                if col in group_df.columns:
-                    # Combine all non-null values and remove duplicates
-                    all_values = group_df[col].dropna().unique().tolist()
-                    if all_values:
-                        merged_data[col] = all_values
-            
-            # Convert merged data to a clean string format
-            clean_data = []
-            for col, values in merged_data.items():
-                # Add only the first non-empty value for each column
-                for value in values:
-                    if pd.notna(value) and str(value).upper() != "NULL" and str(value).strip() != "":
-                        # Clean HTML tags
-                        value = re.sub(r'<[^>]+>', ' ', str(value))
-                        # Remove excessive whitespace
-                        value = re.sub(r'\s+', ' ', value).strip()
-                        clean_data.append(f"{col}: {value}")
-                        break
-            
-            row_data = "\n".join(clean_data)
-            
-            # Estimate token count and display
-            token_estimate = estimate_token_count(row_data)
-            total_token_count += token_estimate
-            print(f"\n=== TOKEN ESTIMATION ===")
-            print(f"Group: {date_group}")
-            print(f"Text length: {len(row_data)} characters")
-            print(f"Estimated token count: {token_estimate} tokens")
-            print(f"======================")
-            
-            # Save the processed data for reference
-            data_file = os.path.join("reports", f"{date_group.replace('/', '-').replace(' ', '_')}_processed_data.txt")
-            with open(data_file, "w", encoding="utf-8") as f:
-                f.write(row_data)
-            print(f"Processed data saved to {data_file}")
-            
-            # Initialize chat sessions for all prompt approaches
-            chat_sessions = {}
-            for prompt_type in PROMPT_APPROACHES.keys():
-                chat_sessions[prompt_type] = initialize_chat_session(prompt_type, example_output)
-                
             # Generate reports using all prompt approaches
             for prompt_type, chat in chat_sessions.items():
                 print(f"\nGenerating report with {prompt_type} approach...")
@@ -320,19 +212,15 @@ def process_csv_with_multiple_prompts():
                 print("---------------------")
                 
                 # Save report to output file
-                output_file = os.path.join("reports", prompt_type, f"{date_group.replace('/', '-').replace(' ', '_')}_report.txt")
+                output_file = os.path.join("reports", prompt_type, f"row{index+1}_report.txt")
                 
                 with open(output_file, "w", encoding="utf-8") as f:
                     f.write(report)
                 
                 print(f"Report saved to {output_file}")
-        
-        print(f"\n### TOTAL ESTIMATED TOKENS USED: {total_token_count} ###")
             
     except Exception as e:
         print(f"Error processing {file_name}: {str(e)}")
-        import traceback
-        traceback.print_exc()
 
 if __name__ == "__main__":
     print("Starting Gemini Traffic Reporter with Multiple Prompt Approaches")
