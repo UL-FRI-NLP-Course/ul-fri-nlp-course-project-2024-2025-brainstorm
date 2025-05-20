@@ -13,6 +13,7 @@ import torch
 
 from datetime import timedelta, datetime
 import csv
+import keyboard
 
 from colorama import Fore
 from colorama import init
@@ -28,15 +29,13 @@ df_input['Datum'] = pd.to_datetime(df_input['Datum'])
 df_output['Datum'] = pd.to_datetime(df_output['Datum'])
 df_traffic_events['Datum'] = pd.to_datetime(df_traffic_events['Datum'])
 
-df_input.sort_values('Datum')
-df_output.sort_values('Datum')
-df_traffic_events.sort_values('Datum')
+df_input = df_input.sort_values('Datum')
+df_output = df_output.sort_values('Datum')
+df_traffic_events = df_traffic_events.sort_values('Datum')
 
-df_output = df_output[df_output['Datum'].dt.hour.between(8, 17)]
-
-start_datum = pd.Timestamp(2024, 9, 1)
+start_datum = pd.Timestamp(2022, 1, 1, 10)
 df_output = df_output[df_output['Datum'] > start_datum]
-
+df_output = df_output[df_output['Datum'].dt.hour.between(8, 18)]
 
 data_dir = 'RTVSlo/RTVSlo'
 data_dir = '.'
@@ -60,12 +59,6 @@ df_input_excel['Datum'] = pd.to_datetime(df_input_excel['Datum'])
 
 # SIMILARITY FUNCTIONS ========================================================
 
-def tf_idf_similarity(text1, text2):
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform([text1, text2])
-    cosine_sim = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix)
-    return cosine_sim[0][1]
-
 def get_embedding(text, tokenizer, model):
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
     with torch.no_grad():
@@ -84,15 +77,13 @@ def preprocess_html(text):
     arr = re.split(r'</?p>', text)
     return [el.strip() for el in arr if el.strip()]
 
-def get_most_similar_content(df_input, rows_indices, query):   
+def get_most_similar_content(df_input, rows_indices, query, model, tokenizer):   
     content_columns = ['A1', 'B1',
         'ContentNesreceSLO', 'ContentZastojiSLO', 'ContentOpozorilaSLO',
         'ContentOvireSLO', 'ContentDeloNaCestiSLO', 'ContentVremeSLO', 
         'ContentSplosnoSLO']
         
     documents = []
-    tokenizer = AutoTokenizer.from_pretrained("rokn/slovlo-v1", use_fast=False)
-    model = AutoModel.from_pretrained("rokn/slovlo-v1")
         
     for idx in rows_indices:
         row = df_input.iloc[idx]
@@ -106,8 +97,10 @@ def get_most_similar_content(df_input, rows_indices, query):
                 for tema in posamezno:
                     documents.append(tema)
             else:
+                col_name = col.replace('Content', '')
+                col_name = col_name.replace('SLO', '')
                 if isinstance(text_content, str):  
-                    documents.append(text_content)
+                    documents.append(col_name + ': ' + text_content)
                 
     # EMBEDDING 
     document_embeddings = [get_embedding(doc, tokenizer, model) for doc in documents]
@@ -123,10 +116,10 @@ def get_most_similar_content(df_input, rows_indices, query):
     return best_match, top_sim
 
                 
-def retrieve_surrounding(selected_timestamp, df_input, traffic_dogodki, window_size):
-    df_prior = df_input[df_input['Datum'] < selected_timestamp].sort_values('Datum')
+def retrieve_surrounding(selected_timestamp, df_input, traffic_dogodki, window_size, model, tokenizer):
+    df_prior = df_input[df_input['Datum'] < selected_timestamp]
     rows_within_window = df_prior.tail(window_size)
-    rows_within_window = rows_within_window[rows_within_window['Datum'] >= (selected_timestamp - timedelta(hours=1.5))]
+    #rows_within_window = rows_within_window[rows_within_window['Datum'] >= (selected_timestamp - timedelta(hours=1.5))]
     
     if rows_within_window.empty:
         print(Fore.RED + "No or incorrect input data.")
@@ -134,7 +127,7 @@ def retrieve_surrounding(selected_timestamp, df_input, traffic_dogodki, window_s
 
     rows_indices = rows_within_window.index.tolist()
     events = traffic_dogodki.split('\n')
-    best_match_content_all = '"'
+    best_match_content_all = ''
     score_sim_threshold = 0.82
       
     if events:
@@ -142,20 +135,23 @@ def retrieve_surrounding(selected_timestamp, df_input, traffic_dogodki, window_s
             besedilo_za_primerjavo = str(event).strip()
             if len(besedilo_za_primerjavo) > 0:
                 print(Fore.GREEN + besedilo_za_primerjavo)
-                best_match_content, sim_score = get_most_similar_content(df_input, rows_indices, besedilo_za_primerjavo)
+                best_match_content, sim_score = get_most_similar_content(df_input, rows_indices, besedilo_za_primerjavo, model, tokenizer)
                 if sim_score <= score_sim_threshold:
                     print("Data quality insufficient. Not reliable input.")
                     return False, ""
                 else:
                     best_match_content_all += best_match_content + '\n'
                     print()
-    best_match_content_all += '"'
+    #best_match_content_all += '"'
     print(Fore.MAGENTA + "\nGathered input data for the report:\n")
     print(Fore.MAGENTA +  best_match_content_all + "\n")
     
     return True, best_match_content_all
                             
 def calc_similarity(df_input, df_traffic_events, window_size):
+    tokenizer = AutoTokenizer.from_pretrained("rokn/slovlo-v1", use_fast=False)
+    model = AutoModel.from_pretrained("rokn/slovlo-v1")
+    
     with open('matched_events_quality.csv', 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['Datum', 'Input_porocilo', 'Porocilo'])
@@ -168,15 +164,19 @@ def calc_similarity(df_input, df_traffic_events, window_size):
             traffic_dogodki_porocilo = row['Porocilo'].split('Podatki o prometu.')
             best_input_za_porocilo = ""
             if len(traffic_dogodki_porocilo)>1:
-                found_data, best_input_za_porocilo = retrieve_surrounding(timestamp, df_input, traffic_dogodki_porocilo[1], window_size) 
+                found_data, best_input_za_porocilo = retrieve_surrounding(timestamp, df_input, traffic_dogodki_porocilo[1], window_size, model, tokenizer) 
                 if found_data:
                     writer.writerow([str(timestamp), best_input_za_porocilo, row['Porocilo']])
 
-            """current_time = datetime.now()
-            if current_time.hour == 7 and current_time.minute == 20:
-                print("It's 7:00 AM — stopping execution.")
-                break"""
+            current_time = datetime.now()
+            if current_time.hour == 8 and current_time.minute == 20:
+                print("It's 8:20 - stopping execution.")
+                break
             
-calc_similarity(df_input_excel, df_output, 70)
+            if keyboard.is_pressed('t'):
+                print("Stopping.")
+                break
+            
+calc_similarity(df_input_excel, df_output, 50)
 
 
