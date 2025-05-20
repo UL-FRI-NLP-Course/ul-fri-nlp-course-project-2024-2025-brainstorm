@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+FineTune/__pycache__
 # C extensions
 *.so
 
