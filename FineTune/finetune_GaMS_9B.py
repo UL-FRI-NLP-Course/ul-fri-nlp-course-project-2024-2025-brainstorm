@@ -49,10 +49,11 @@ def load_tokenizer_and_model():
     logger.info(f"Loading model from {MODEL_PATH}")
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
-        torch_dtype=torch.bfloat16,
-        device_map="auto"
+        torch_dtype=MODEL_PRECISION,
+        device_map="auto",
+        attn_implementation='eager'  # Add this line
     )
-    
+    model.init_weights() 
     # Set up generation config - very important for saving later
     generation_config = GenerationConfig(**GENERATION_CONFIG)
     model.generation_config = generation_config
@@ -95,6 +96,8 @@ def train(model, tokenizer, train_dataloader, val_dataloader):
         num_training_steps=num_training_steps
     )
     
+    max_grad_norm = 1.0  # Clip gradients at 1.0
+    
     # Training loop
     device = model.device
     model.train()
@@ -105,12 +108,17 @@ def train(model, tokenizer, train_dataloader, val_dataloader):
         progress_bar = tqdm(train_dataloader, desc=f"Epoch {epoch+1}")
         
         for batch in progress_bar:
+            
             batch = {k: v.to(device) for k, v in batch.items()}
             
             optimizer.zero_grad()
             outputs = model(**batch)
             loss = outputs.loss
             loss.backward()
+            
+            if torch.isnan(loss):
+                logger.warning("Skipping batch due to NaN loss")
+
             
             optimizer.step()
             lr_scheduler.step()

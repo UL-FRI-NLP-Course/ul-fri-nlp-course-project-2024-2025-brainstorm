@@ -12,6 +12,10 @@ import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from FineTune.params_GaMS_9B import *
 
+
+#! Set path to the desierd model
+PATH_TO_MODEL ="/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct_smolPrompt"
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -31,8 +35,9 @@ def load_finetuned_model(model_path):
     logger.info(f"Loading model from {model_path}")
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
-        torch_dtype=torch.bfloat16,
-        device_map="auto"
+        torch_dtype=MODEL_PRECISION,
+        device_map="auto",
+        attn_implementation='eager'
     )
     
     return tokenizer, model
@@ -123,7 +128,7 @@ def main():
     
     # Load model
     print("DEBUG: Loading model...")
-    tokenizer, model = load_finetuned_model(OUTPUT_DIR)
+    tokenizer, model = load_finetuned_model(PATH_TO_MODEL)
     print("DEBUG: Model loaded successfully")
     
     # Test data path

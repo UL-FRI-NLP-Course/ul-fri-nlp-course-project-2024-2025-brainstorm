@@ -21,8 +21,18 @@ class TrafficReportDataset(Dataset):
         # Clean HTML tags if present
         input_text = re.sub(r'<.*?>', '', item['Input_porocilo'])
         
+        
+        shortened_prompt = """Generiraj prometno poročilo v slovenščini za radio.
+            Upoštevaj standardno strukturo:
+            1. Začni z "Prometne informacije [datum] [čas] za Radio Slovenija"
+            2. Vključi samo pomembne prometne dogodke
+            3. Uporabljaj trpne oblike in ustrezno terminologijo
+            4. Poročilo naj bo jedrnato (<1 min branja)
+
+            Podatki o prometu:
+            """        
         # Format input with appropriate prompt
-        input_prompt = f"Generate a traffic report based on the following events:\n{input_text}"
+        input_prompt = f"{shortened_prompt}\n{input_text}"
         
         # For training we include the target report (Porocilo)
         if 'Porocilo' in item and item['Porocilo']:

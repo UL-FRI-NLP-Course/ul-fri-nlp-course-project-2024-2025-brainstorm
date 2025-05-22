@@ -14,7 +14,7 @@ MODEL_NAME = "GaMS-9B-Instruct"
 BASE_MODEL = "google/gemma-2-9b"
 
 # Model settings
-MODEL_PRECISION = "bfloat16"  # Options: "float32", "float16", "bfloat16"
+MODEL_PRECISION = "float32"  # Options: "float32", "float16", "bfloat16"
 GRADIENT_CHECKPOINTING = True  # Saves memory but slows down training
 
 #########################
@@ -22,13 +22,13 @@ GRADIENT_CHECKPOINTING = True  # Saves memory but slows down training
 #########################
 
 # Basic training parameters
-NUM_EPOCHS = 3
-LEARNING_RATE = 2e-5
-BATCH_SIZE = 4
+NUM_EPOCHS = 5
+LEARNING_RATE = 1e-6
+BATCH_SIZE = 2
 MAX_SEQ_LENGTH = 512
 WARMUP_RATIO = 0.05  # Percentage of steps for warmup
 WEIGHT_DECAY = 0.01
-GRADIENT_ACCUMULATION_STEPS = 1  # Increase if you need larger effective batch size
+GRADIENT_ACCUMULATION_STEPS = 8  # Increase if you need larger effective batch size
 
 # Optimizer and scheduler
 OPTIMIZER = "adamw"  # Options: "adamw", "adafactor"
@@ -57,9 +57,8 @@ LORA_CONFIG = {
 #########################
 
 # Dataset paths and settings
-DARASET_DIR = "/d/hpc/home/aj3477/NLP/data/matched_events_sample.csv"
-TRAIN_FILE = "prometni_dogodki_llm.csv"
-TEST_SPLIT = 0.1
+DARASET_DIR = "/d/hpc/projects/onj_fri/brainstorm/not_dataset_folder/not_dataset.csv"
+TEST_SPLIT = 0.05
 RANDOM_SEED = 42
 
 # Text processing
@@ -78,8 +77,8 @@ LOGGING_DIR = "/d/hpc/home/aj3477/NLP/logs/GaMS-9B-Instruct"
 TESTING_DIR = f"{LOGGING_DIR}/testing"
 
 # Evaluation settings
-EVAL_STEPS = 1  # Run evaluation every N steps
-SAVE_STEPS = 10  # Save checkpoint every N steps
+EVAL_STEPS = 500  # Run evaluation every N steps
+SAVE_STEPS = 800  # Save checkpoint every N steps
 
 # Wandb configuration
 WANDB_PROJECT = "traffic-report-generation"
