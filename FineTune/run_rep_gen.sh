@@ -3,8 +3,10 @@
 #SBATCH --partition=gpu         # Partition (queue) name
 #SBATCH --nodes=1               # Number of nodes
 #SBATCH --ntasks=1              # Number of tasks (processes)
-#SBATCH --cpus-per-task=4       # CPU cores/threads per task
+#SBATCH --cpus-per-task=8       # CPU cores/threads per task
 #SBATCH --gres=gpu:1            # Number of GPUs per node (we only need 1 for testing)
+#SBATCH --gpu-bind=none  # Try this if default binding fails
+
 #SBATCH --mem=64G               # Job memory request
 #SBATCH --time=01:00:00         # Time limit hrs:min:sec
 

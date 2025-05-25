@@ -24,7 +24,7 @@ export TRANSFORMERS_CACHE="/d/hpc/home/aj3477/.cache/huggingface"
 export HF_HOME="/d/hpc/home/aj3477/.cache/huggingface"
 
 # Run the test script
-singularity exec --nv --overlay /d/hpc/projects/onj_fri/brainstorm/container/overlay.img /d/hpc/projects/onj_fri/brainstorm/container/container_llm.sif \
+singularity exec --nv --overlay /d/hpc/projects/onj_fri/brainstorm/container/overlay_pp.img /d/hpc/projects/onj_fri/brainstorm/container/container_pp.sif \
     python3 /d/hpc/home/aj3477/NLP/FineTune/test.py
 
 echo "Testing job $SLURM_JOB_ID finished"

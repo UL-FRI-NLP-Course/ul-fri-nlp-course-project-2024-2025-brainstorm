@@ -14,7 +14,7 @@ from FineTune.params_GaMS_9B import *
 
 
 #! Set path to the desierd model
-PATH_TO_MODEL ="/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct_smolPrompt"
+PATH_TO_MODEL ="/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct/checkpoints/checkpoint-epoch-3"
 
 # Set up logging
 logging.basicConfig(
@@ -44,7 +44,19 @@ def load_finetuned_model(model_path):
 
 def generate_report(model, tokenizer, events, max_length=512):
     """Generate a traffic report based on events"""
-    prompt = f"Generate a traffic report based on the following events:\n{events}\n\nReport:"
+    
+    shortened_prompt = """Generiraj prometno poročilo v slovenščini za radio.
+        Upoštevaj standardno strukturo:
+        1. Začni z "Prometne informacije [datum] [čas] za Radio Slovenija"
+        2. Vključi samo pomembne prometne dogodke
+        3. Uporabljaj trpne oblike in ustrezno terminologijo
+        4. Poročilo naj bo jedrnato (<1 min branja)
+
+        Podatki o prometu:
+        """        
+    # Format input with appropriate prompt
+    prompt = f"{shortened_prompt}\n{events}n\nReport:"
+    # prompt = f"Generate a traffic report based on the following events:\n{events}\"
     
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     

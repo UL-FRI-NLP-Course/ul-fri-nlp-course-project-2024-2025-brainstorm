@@ -4,6 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import os
 from sklearn.model_selection import train_test_split
 import re
+import pandas as pd  # ADD THIS LINE
 
 class TrafficReportDataset(Dataset):
     def __init__(self, data, tokenizer, max_length=512):
@@ -17,47 +18,51 @@ class TrafficReportDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         
-        # Use the Input_porocilo as input
         # Clean HTML tags if present
         input_text = re.sub(r'<.*?>', '', item['Input_porocilo'])
+        input_text = re.sub(r'\s+', ' ', input_text).strip()
         
+        # Handle empty inputs
+        if len(input_text.strip()) < 10:
+            input_text = "Ni posebnih prometnih podatkov."
         
-        shortened_prompt = """Generiraj prometno poročilo v slovenščini za radio.
-            Upoštevaj standardno strukturo:
-            1. Začni z "Prometne informacije [datum] [čas] za Radio Slovenija"
-            2. Vključi samo pomembne prometne dogodke
-            3. Uporabljaj trpne oblike in ustrezno terminologijo
-            4. Poročilo naj bo jedrnato (<1 min branja)
+        # Create the user message
+        user_message = f"""Si strokovnjak za prometna poročila za slovenski radio. Ustvari kratko prometno poročilo iz podanih podatkov.
 
-            Podatki o prometu:
-            """        
-        # Format input with appropriate prompt
-        input_prompt = f"{shortened_prompt}\n{input_text}"
-        
-        # For training we include the target report (Porocilo)
+    PRAVILA:
+    - Pri več dogodkih: najprej najpomembnejše (zapore, nesreče)
+    - Uporabljaj kratke stavke, primerne za radio
+    - Maksimalno 60 sekund branja
+    - Uporabljaj uradni prometni jezik
+
+    STRUKTURA (prilagodi glede na podatke):
+    - Glavne zapore/motnje
+    - Obvozi
+    - Omejitve za tovorna vozila  
+    - Vremenske razmere (če vplivajo)
+
+    Podatki o prometu: {input_text}"""
+
         if 'Porocilo' in item and item['Porocilo']:
-            # Format full input-output sequence
-            input_output = f"{input_prompt}\n\nReport:\n{item['Porocilo']}"
+            # Format for training with proper GaMS conversation format
+            full_conversation = f"<bos><start_of_turn>user\n{user_message}<end_of_turn>\n<start_of_turn>model\n{item['Porocilo']}<end_of_turn><eos>"
             
-            encoding = self.tokenizer(input_output, 
-                                     max_length=self.max_length,
-                                     padding="max_length",
-                                     truncation=True,
-                                     return_tensors="pt")
+            encoding = self.tokenizer(full_conversation,
+                                    max_length=self.max_length,
+                                    padding="max_length",
+                                    truncation=True,
+                                    return_tensors="pt")
             
-            # Create input_ids and labels for training
             input_ids = encoding.input_ids[0]
             attention_mask = encoding.attention_mask[0]
-            
-            # For causal language modeling, labels are the same as input_ids
-            # but we set the input part to -100 to ignore in loss calculation
             labels = input_ids.clone()
             
-            # Determine the position where the output starts
-            input_encoding = self.tokenizer(input_prompt, return_tensors="pt")
-            input_length = len(input_encoding.input_ids[0])
+            # Find where model response starts
+            user_part = f"<bos><start_of_turn>user\n{user_message}<end_of_turn>\n<start_of_turn>model\n"
+            user_encoding = self.tokenizer(user_part, add_special_tokens=False, return_tensors="pt")
+            input_length = len(user_encoding.input_ids[0])
             
-            # Set labels for input portion to -100 (ignore in loss calculation)
+            # Mask user input in labels (only train on model output)
             labels[:input_length] = -100
             
             return {
@@ -66,20 +71,22 @@ class TrafficReportDataset(Dataset):
                 "labels": labels
             }
         
-        # For inference, we only need input
+        # For inference
         else:
-            encoding = self.tokenizer(input_prompt, 
-                                     max_length=self.max_length,
-                                     padding="max_length",
-                                     truncation=True,
-                                     return_tensors="pt")
+            inference_prompt = f"<bos><start_of_turn>user\n{user_message}<end_of_turn>\n<start_of_turn>model\n"
+            
+            encoding = self.tokenizer(inference_prompt,
+                                    max_length=self.max_length,
+                                    padding="max_length",
+                                    truncation=True,
+                                    return_tensors="pt")
             
             return {
                 "input_ids": encoding.input_ids[0],
                 "attention_mask": encoding.attention_mask[0]
             }
 
-def load_and_prepare_data(csv_path, tokenizer, test_size=0.1, seed=42):
+def load_and_prepare_data(csv_path, tokenizer, test_size=0.05, seed=42):
     """
     Load data from CSV and prepare for training/testing
     """
@@ -101,7 +108,7 @@ def load_and_prepare_data(csv_path, tokenizer, test_size=0.1, seed=42):
         })
     
     # Split data for training and validation
-    train_data, val_data = train_test_split(processed_data, test_size=test_size, random_state=seed)
+    train_data, val_data = train_test_split(processed_data, test_size=0.05, random_state=seed)
     
     return train_data, val_data
 
@@ -112,7 +119,7 @@ def create_dataloaders(train_data, val_data, tokenizer, batch_size, max_length=5
     train_dataset = TrafficReportDataset(train_data, tokenizer, max_length)
     val_dataset = TrafficReportDataset(val_data, tokenizer, max_length)
     
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=batch_size)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False,num_workers=8 ,pin_memory=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=batch_size,num_workers=4)
     
     return train_dataloader, val_dataloader

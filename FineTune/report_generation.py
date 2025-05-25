@@ -1,3 +1,4 @@
+import re
 import os
 import sys
 import torch
@@ -14,21 +15,27 @@ from FineTune.params_GaMS_9B import *
 
 
 #! Set path to the desierd model
-PATH_TO_MODEL ="/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct/checkpoints/checkpoint-epoch-3"
+PATH_TO_MODEL ="/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct/checkpoints/checkpoint-epoch-1"
 
 # TEST DATASET PATH
 PATH_TO_DATASET = "/d/hpc/projects/onj_fri/brainstorm/not_dataset_folder/not_test_data.csv"
 
 # PROMPT FOR GENERATING REPORTS
-PROMPT = """Generiraj prometno poročilo v slovenščini za radio.
-        Upoštevaj standardno strukturo:
-        1. Začni z "Prometne informacije [datum] [čas] za Radio Slovenija"
-        2. Vključi samo pomembne prometne dogodke
-        3. Uporabljaj trpne oblike in ustrezno terminologijo
-        4. Poročilo naj bo jedrnato (<1 min branja)
+PROMPT = """Si strokovnjak za prometna poročila za slovenski radio. Ustvari kratko prometno poročilo iz podanih podatkov.
 
-        Podatki o prometu:
-        """ 
+    PRAVILA:
+    - Pri več dogodkih: najprej najpomembnejše (zapore, nesreče)
+    - Uporabljaj kratke stavke, primerne za radio
+    - Maksimalno 60 sekund branja
+    - Uporabljaj uradni prometni jezik
+
+    STRUKTURA (prilagodi glede na podatke):
+    - Glavne zapore/motnje
+    - Obvozi
+    - Omejitve za tovorna vozila  
+    - Vremenske razmere (če vplivajo)
+
+    Podatki o prometu: """
 
 # REPORT HEADER VARIABLES
 PROGRAM_NUMBER="2."
@@ -37,105 +44,138 @@ NEW_REPORT= False
 
 def load_finetuned_model(model_path):
     """Load the fine-tuned model and tokenizer"""
-    
+    print("DEBUG: Loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
+    
+    print("DEBUG: Tokenizer loaded successfully")
+    os.environ["TRANSFORMERS_VERBOSITY"] = "info"
     
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         torch_dtype=MODEL_PRECISION,
-        device_map="auto",
-        attn_implementation='eager'
+        device_map={"": 0},  # Force everything to first GPU
+        # device_map="auto"
+        # attn_implementation='eager'
     )
-    
+    print("DEBUG: Model loaded successfully")
     return tokenizer, model
 
-def correct_slovenian_text(text, model, tokenizer):
-    """Use the model to correct grammar, style and formatting in Slovenian traffic reports"""
+def post_process_report(text):
+    """Apply rule-based corrections to traffic reports"""
     
-    correction_prompt = f"""Popravi naslednje prometno poročilo za radio.
+    # Common fixes for Slovenian traffic reports
+    corrections = {
+        # Passive voice corrections
+        r'Cesta je zaprta': 'Zaprta je cesta',
+        r'Promet je oviran': 'Oviran je promet',
+        r'Avtocesta je zaprta': 'Zaprta je avtocesta',
+        
+        # Standardize terminology
+        r'avtocesta A(\d+)': r'avtocesta A\1',
+        r'regionalna cesta R(\d+)': r'regionalna cesta R\1',
+        r'glavna cesta G(\d+)': r'glavna cesta G\1',
+        
+        # Fix common spacing issues
+        r'\s+': ' ',  # Multiple spaces to single space
+        r'\n\s*\n': '\n\n',  # Normalize paragraph breaks
+        r'^\s+': '',  # Remove leading whitespace
+        r'\s+$': '',  # Remove trailing whitespace
+        
+        # Ensure proper punctuation
+        r'([^.!?])\s*$': r'\1.',  # Add period at end if missing
+        
+        # Standardize time format
+        r'(\d{1,2})\.(\d{2})\s*ure?': r'\1.\2',
+        r'(\d{1,2})\s*ure?': r'\1. ure',
+        
+        # Fix common traffic terms
+        r'zaradi nesreče': 'zaradi prometne nesreče',
+    }
     
-    Navodila za popravke:
-    1. Slovnična pravilnost: Popravi vse slovnične napake v slovenščini
-    2. Trpnik: Uporabljaj trpno obliko (npr. "Zaprta je cesta" namesto "Cesta je zaprta")
-    3. Prelomi odstavkov: Vsak dogodek naj bo v svojem odstavku, ločen z dvojnim presledkom
-    4. Odstrani ponavljanja: Če se ista informacija pojavi večkrat, jo obdrži le enkrat
-    5. Standardna terminologija: Uporabljaj standardne izraze za prometna poročila (npr. "oviran promet", "zastoj", "zaprta cesta")
-    6. Končna ločila: Vsak odstavek naj se konča s piko, klicajem ali vprašajem
-    7. Velike začetnice: Vsak odstavek naj se začne z veliko začetnico
-    8. Poročilo ohrani jedrnato in primerno za radijsko branje
-    9. Ohrani vse pomembne prometne informacije
+    cleaned_text = text
+    for pattern, replacement in corrections.items():
+        cleaned_text = re.sub(pattern, replacement, cleaned_text)
     
-    Poročilo za popravek:
-    {text}
+    # Additional cleaning
+    cleaned_text = cleaned_text.strip()
     
-    Popravljeno poročilo:"""
+    # Ensure proper sentence structure
+    if cleaned_text and not cleaned_text.endswith(('.', '!', '?')):
+        cleaned_text += '.'
     
-    # Process with model
-    inputs = tokenizer(correction_prompt, return_tensors="pt").to(model.device)
-    
-    # Generate corrected text
-    outputs = model.generate(
-        input_ids=inputs.input_ids,
-        attention_mask=inputs.attention_mask,
-        max_new_tokens=512,
-        temperature=0.3,  # Lower temperature for more deterministic corrections
-        top_p=0.95,
-        do_sample=True,
-        num_return_sequences=1
-    )
-    
-    # Decode the generated text
-    corrected_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
-    # Extract only the corrected portion after the prompt
-    if "Popravljeno poročilo:" in corrected_text:
-        corrected_text = corrected_text.split("Popravljeno poročilo:")[-1].strip()
-    
-    return corrected_text
+    return cleaned_text
 
 def generate_report(model, tokenizer, events, timestamp, max_length=512):
-    """Generate a traffic report based on events"""
+    """Generate a traffic report using the same format as training"""
     
-    # Parse the timestamp to get formatted date and time
+    # Parse timestamp
     date_obj = pd.to_datetime(timestamp)
     formatted_date = date_obj.strftime("%d. %m. %Y")
     formatted_time = date_obj.strftime("%H.%M")
     
-    # Create the header
-    header = f"Prometne informacije          {formatted_date}       {formatted_time}         {PROGRAM_NUMBER} program\n\nPodatki o prometu.\n\n"
-    if NEW_REPORT:
-        header= "NOVE "+header
+    # Clean HTML tags from events (same as training)
+    input_text = re.sub(r'<.*?>', '', str(events))
+    input_text = re.sub(r'\s+', ' ', input_text).strip()
     
-    # Format input with appropriate prompt
-    prompt = f"{PROMPT}\n{events}n\nReport:"
+    # Handle empty inputs (same as training)
+    if len(input_text.strip()) < 10:
+        input_text = "Ni posebnih prometnih podatkov."
     
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+    # USE EXACT SAME PROMPT AS TRAINING
+    user_message = f"""Si strokovnjak za prometna poročila za slovenski radio. Ustvari kratko prometno poročilo iz podanih podatkov.
+
+    PRAVILA:
+    - Pri več dogodkih: najprej najpomembnejše (zapore, nesreče)
+    - Uporabljaj kratke stavke, primerne za radio
+    - Maksimalno 60 sekund branja
+    - Uporabljaj uradni prometni jezik
+
+    STRUKTURA (prilagodi glede na podatke):
+    - Glavne zapore/motnje
+    - Obvozi
+    - Omejitve za tovorna vozila  
+    - Vremenske razmere (če vplivajo)
+
+    Podatki o prometu: {input_text}"""
+    
+    # USE EXACT SAME FORMAT AS TRAINING
+    inference_prompt = f"<bos><start_of_turn>user\n{user_message}<end_of_turn>\n<start_of_turn>model\n"
+    
+    inputs = tokenizer(inference_prompt, return_tensors="pt").to(model.device)
     
     # Generate text
     outputs = model.generate(
         input_ids=inputs.input_ids,
         attention_mask=inputs.attention_mask,
-        max_new_tokens=512,
-        temperature=0.7,
-        top_p=0.9,
+        max_new_tokens=300,  # Shorter for radio reports
+        temperature=0.3,     # Lower for more consistency
+        top_p=0.8,
         do_sample=True,
+        repetition_penalty=1.2,
         num_return_sequences=1
     )
     
-    # Decode the generated text
+    # Decode and extract only the generated part
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    # More robust extraction
+    if "<start_of_turn>model\n" in generated_text:
+        report_content = generated_text.split("<start_of_turn>model\n", 1)[1].strip()
+    else:
+        # Fallback
+        report_content = generated_text[len(inference_prompt):].strip()
     
-    # Extract just the report part (remove the prompt)
-    report_content = generated_text[len(prompt):].strip()
+    # Apply your correction if needed
+    corrected_content = post_process_report(report_content)
     
-    # NEW: Apply grammar and formatting correction
-
-    corrected_content = correct_slovenian_text(report_content, model, tokenizer)
+    # Create header
+    header = f"Prometne informacije          {formatted_date}       {formatted_time}         {PROGRAM_NUMBER} program\n\nPodatki o prometu.\n\n"
+    if NEW_REPORT:
+        header = "NOVE " + header
     
-    # Add the header to the corrected content
     final_report = header + corrected_content
     
-    return (final_report,report_content)
+    return final_report, report_content
+
 
 def test_model(model, tokenizer, test_data_path):
     """Test the model on traffic events data"""

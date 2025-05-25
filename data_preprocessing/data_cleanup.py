@@ -4,21 +4,21 @@ import os
 
 def clean_porocilo_headers(text):
     """
-    Remove the first three lines from Porocilo entries:
-    - Line with "Prometne informacije" followed by date, time and program info
-    - Empty line
-    - Line with "Podatki o prometu."
+    Remove the first four lines from Porocilo entries
     """
     if not isinstance(text, str):
         return text
     
-    # Pattern to match the header lines
-    pattern = r'^(?:NOVE )?Prometne informacije.*?\n\n(?:Podatki o prometu\.\n)?'
+    # Split text into lines
+    lines = text.split('\n')
     
-    # Remove the matched pattern
-    cleaned_text = re.sub(pattern, '', text, flags=re.DOTALL)
-    
-    return cleaned_text.strip()
+    # Remove first 4 lines if there are at least 4 lines
+    if len(lines) > 4:
+        cleaned_lines = lines[4:]
+        return '\n'.join(cleaned_lines).strip()
+    else:
+        # If less than 4 lines, return empty string or original text
+        return text.strip()
 
 def clean_dataset():
     """
