@@ -1,0 +1,223 @@
+Datum,Prometni_dogodki
+2022-04-02 09:00:00,"Tukaj so ocene za podano generirano prometno poročilo:
+
+1.  a) Lokacija: 0 (Nobena lokacija ni pravilna.)
+2.  b) Tip dogodka: 0 (Noben tip dogodka ni pravilen.)
+3.  c) Smer: 0 (Nobena smer ni pravilna.)
+4.  d) Neprisotni dogodki: 0 (Vsi dogodki so napačni.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje napačne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 2 (Zaradi napačnih informacij je kvaliteta zelo nizka.)
+9.  e) Primernost: 3 (Zaradi napačnih informacij je poročilo neprimerno za radijsko objavo.)
+"
+2022-11-11 10:00:00,"1.  a) Lokacija: 3 (Ena lokacija je delno pravilna - ""pomurski avtocesti"", vendar smer ni pravilna.)
+2.  b) Tip dogodka: 3 (Delno pravilen tip dogodka - ""zastoj"" na gorenjski avtocesti, vendar ne v celoti.)
+3.  c) Smer: 0 (Nobena smer ni popolnoma pravilna.)
+4.  d) Neprisotni dogodki: 4 (Večina dogodkov v generiranem poročilu ni prisotna v pravilnem.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje preveč napačnih informacij.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 4 (Zaradi precejšnjega števila napačnih informacij je kvaliteta nizka.)
+9.  e) Primernost: 4 (Zaradi napačnih informacij je poročilo manj primerno za radijsko objavo.)
+"
+2022-01-10 17:30:00,"1.  a) Lokacija: 8 (Večina lokacij je pravilna, nekatere so delno netočne - npr. Dobovec namesto Slovenska vas.)
+2.  b) Tip dogodka: 10 (Vsi tipi dogodkov so pravilni - zaprta cesta, zastoj, čakanje na mejnem prehodu.)
+3.  c) Smer: 9 (Smer je pravilna v večini primerov, razen manjše netočnosti pri mejnih prehodih.)
+4.  d) Neprisotni dogodki: 6 (Nekateri podatki o čakanju na mejnih prehodih niso prisotni v pravilnem poročilu.)
+
+5.  a) Jedernatost: 8 (Poročilo je jedrnato in vsebuje bistvene informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 9 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 8 (Poročilo je dobro, z manjšimi netočnostmi pri lokacijah in čakanju na mejnih prehodih.)
+9.  e) Primernost: 9 (Poročilo je zelo primerno za radijsko objavo.)
+"
+2023-05-19 18:00:00,"1.  a) Lokacija: 7 (Večina lokacij je pravilna ali delno pravilna, npr. ""Tolmin-Kobarid"", ""primorska avtocesta"", ""južna ljubljanska obvoznica"", vendar z nekaj netočnostmi kot ""Brezovica proti Rudniku"" namesto ""Vrhnika proti Ljubljani"".)
+2.  b) Tip dogodka: 9 (Skoraj vsi tipi dogodkov so pravilni - ""prometna nesreča"", ""gost promet z zastoji"", ""oviran promet"".)
+3.  c) Smer: 7 (Smer je pravilna v večini primerov, vendar z nekaj netočnostmi, npr. ""proti Novemu mestu"" namesto ""proti Dolenjski"".)
+4.  d) Neprisotni dogodki: 7 (Nekatere informacije o natančni lokaciji zastojev in oviranem prometu niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 8 (Poročilo je jedrnato in podaja ključne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 9 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 7 (Poročilo je dobro, z nekaj netočnostmi pri lokacijah in smereh.)
+9.  e) Primernost: 8 (Poročilo je primerno za radijsko objavo.)
+"
+2023-08-29 10:00:00,"1.  a) Lokacija: 2 (Le ena lokacija je delno pravilna - ""dolenjska avtocesta"", vendar ne natančno.)
+2.  b) Tip dogodka: 5 (Nekateri tipi dogodkov so pravilni, npr. ""zastoj"", ""dela"", ""pokvarjeno vozilo"", vendar ne na pravih lokacijah.)
+3.  c) Smer: 3 (Le ena smer je delno pravilna - ""proti Ljubljani"" na dolenjski avtocesti, vendar ne natančno.)
+4.  d) Neprisotni dogodki: 2 (Skoraj vsi dogodki v generiranem poročilu niso prisotni v pravilnem poročilu.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje napačne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 3 (Zaradi precejšnjega števila napačnih informacij je kvaliteta zelo nizka.)
+9.  e) Primernost: 3 (Zaradi napačnih informacij je poročilo neprimerno za radijsko objavo.)
+"
+2023-02-20 08:30:00,"1.  a) Lokacija: 5 (Nekatere lokacije so delno pravilne, npr. ""štajerska avtocesta"", ""dolenjska avtocesta"", ""predor Karavanke"", vendar z netočnimi podrobnostmi.)
+2.  b) Tip dogodka: 8 (Večina tipov dogodkov je pravilna - ""gost promet z zastoji"", ""pokvarjen tovornjak"", ""zastoj"".)
+3.  c) Smer: 6 (Nekatere smeri so pravilne, vendar z netočnimi podrobnostmi, npr. ""proti Obrežju"" namesto ""proti Šentjakobi"".)
+4.  d) Neprisotni dogodki: 6 (Nekatere informacije o natančnih lokacijah in podrobnostih niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 8 (Poročilo je jedrnato in podaja ključne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 9 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 6 (Poročilo je zadovoljivo, vendar z nekaj netočnostmi pri lokacijah in smereh.)
+9.  e) Primernost: 7 (Poročilo je precej primerno za radijsko objavo.)
+"
+2023-03-27 10:00:00,"1.  a) Lokacija: 0 (Nobena od navedenih lokacij ni pravilna.)
+2.  b) Tip dogodka: 3 (Le tip dogodka ""dela"" je omenjen, vendar na napačni lokaciji.)
+3.  c) Smer: 0 (Nobena smer ni pravilna.)
+4.  d) Neprisotni dogodki: 0 (Vsi dogodki so napačni.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje napačne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 2 (Zaradi napačnih informacij je kvaliteta zelo nizka.)
+9.  e) Primernost: 2 (Zaradi napačnih informacij je poročilo neprimerno za radijsko objavo.)
+"
+2023-08-02 09:30:00,"1.  a) Lokacija: 0 (Nobena lokacija ni pravilna.)
+2.  b) Tip dogodka: 3 (Tip dogodka ""dela"" je omenjen, vendar na napačni lokaciji.)
+3.  c) Smer: 0 (Nobena smer ni pravilna.)
+4.  d) Neprisotni dogodki: 0 (Vsi dogodki so napačni.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje napačne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 2 (Zaradi napačnih informacij je kvaliteta zelo nizka.)
+9.  e) Primernost: 2 (Zaradi napačnih informacij je poročilo neprimerno za radijsko objavo.)
+"
+2022-07-14 15:30:00,"1.  a) Lokacija: 6 (Nekatere lokacije so pravilne ali delno pravilne, npr. ""primorska avtocesta"", ""Ljubljana-Medvode"", ""Gruškovje"", vendar z netočnostmi.)
+2.  b) Tip dogodka: 9 (Skoraj vsi tipi dogodkov so pravilni - ""zastoj"", ""prometna nesreča"", ""čakanje na mejnem prehodu"".)
+3.  c) Smer: 7 (Nekatere smeri so pravilne, vendar z netočnostmi, npr. ""proti Brezovici"" namesto ""od Razdrtega do Unca"".)
+4.  d) Neprisotni dogodki: 5 (Precej informacij o natančnih lokacijah zastojev in čakanju na mejnih prehodih ni prisotnih v pravilnem poročilu.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje preveč podrobnosti, ki niso nujne za radijsko poročanje.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 7 (Poročilo je dobro, vendar z nekaj netočnostmi in preveč podrobnostmi.)
+9.  e) Primernost: 7 (Poročilo je precej primerno za radijsko objavo, vendar bi ga bilo treba skrajšati.)
+"
+2023-08-23 12:00:00,"1.  a) Lokacija: 7 (Večina lokacij je pravilna ali delno pravilna, npr. ""Lucija-Izola/Strunjan"", ""Šmarje-Koper"", ""gorenjska avtocesta"", vendar z netočnostmi.)
+2.  b) Tip dogodka: 8 (Večina tipov dogodkov je pravilna - ""zastoj"", ""gost promet z zastoji"", ""dela"", vendar ne vsi.)
+3.  c) Smer: 6 (Nekatere smeri so pravilne, vendar z netočnostmi, npr. ""proti Karavankam"" namesto ""proti Kranju"".)
+4.  d) Neprisotni dogodki: 6 (Nekatere informacije o natančnih lokacijah zastojev in del niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje preveč podrobnosti, ki niso nujne za radijsko poročanje.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 7 (Poročilo je dobro, vendar z nekaj netočnostmi in preveč podrobnostmi.)
+9.  e) Primernost: 7 (Poročilo je precej primerno za radijsko objavo, vendar bi ga bilo treba skrajšati.)
+"
+2023-10-10 12:30:00,"1.  a) Lokacija: 0 (Nobena lokacija ni pravilna.)
+2.  b) Tip dogodka: 3 (Tip dogodka ""dela"" je omenjen, vendar na napačni lokaciji.)
+3.  c) Smer: 0 (Nobena smer ni pravilna.)
+4.  d) Neprisotni dogodki: 0 (Vsi dogodki so napačni.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje napačne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 2 (Zaradi napačnih informacij je kvaliteta zelo nizka.)
+9.  e) Primernost: 2 (Zaradi napačnih informacij je poročilo neprimerno za radijsko objavo.)
+"
+2023-10-11 08:30:00,"1.  a) Lokacija: 3 (Nekatere lokacije so delno pravilne, npr. ""štajerska avtocesta"", ""primorska avtocesta"", vendar z netočnimi podrobnostmi.)
+2.  b) Tip dogodka: 7 (Večina tipov dogodkov je pravilna - ""zastoj"", ""dela"", ""pokvarjeno vozilo"", vendar ne na pravih lokacijah.)
+3.  c) Smer: 5 (Nekatere smeri so pravilne, vendar z netočnimi podrobnostmi, npr. ""proti Ljubljani"" na štajerski avtocesti.)
+4.  d) Neprisotni dogodki: 4 (Precej informacij o natančnih lokacijah in podrobnostih ni prisotnih v pravilnem poročilu.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje preveč podrobnosti, ki niso nujne za radijsko poročanje.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 5 (Poročilo je povprečno, z nekaj netočnostmi in preveč podrobnostmi.)
+9.  e) Primernost: 6 (Poročilo je precej primerno za radijsko objavo, vendar bi ga bilo treba skrajšati in popraviti netočnosti.)
+"
+2022-11-20 08:30:00,"1.  a) Lokacija: 5 (Dve lokaciji sta delno pravilni: ""vipavska hitra cesta"" in ""ponekod po državi"", vendar ne natančno.)
+2.  b) Tip dogodka: 7 (Dva tipa dogodka sta pravilna: ""zmanjšana vidljivost"" in ""prepoved prometa"", vendar ne na vseh navedenih lokacijah.)
+3.  c) Smer: 3 (Ena smer je delno pravilna: ""proti Lendavi"" bi lahko bila povezana s pomursko avtocesto, vendar je dogodek napačen.)
+4.  d) Neprisotni dogodki: 5 (Nekatere informacije o delih na pomurski avtocesti niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 8 (Poročilo je jedrnato in podaja ključne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 9 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 6 (Poročilo je zadovoljivo, vendar z nekaj netočnostmi pri lokacijah in dogodkih.)
+9.  e) Primernost: 7 (Poročilo je precej primerno za radijsko objavo.)
+"
+2023-02-25 14:00:00,"1.  a) Lokacija: 5 (Dve lokaciji sta delno pravilni: ""vipavska hitra cesta"" in ""primorska avtocesta"", vendar ne natančno.)
+2.  b) Tip dogodka: 7 (Dva tipa dogodka sta pravilna: ""dela"" in ""oviran promet"", vendar ne na vseh navedenih lokacijah.)
+3.  c) Smer: 5 (Dve smeri sta delno pravilni: ""proti Mariboru"" in ""proti Kopru"", vendar ne natančno.)
+4.  d) Neprisotni dogodki: 5 (Nekatere informacije o delih na pomurski avtocesti in pokvarjenem vozilu na gorenjski avtocesti niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 8 (Poročilo je jedrnato in podaja ključne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 9 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 6 (Poročilo je zadovoljivo, vendar z nekaj netočnostmi pri lokacijah in dogodkih.)
+9.  e) Primernost: 7 (Poročilo je precej primerno za radijsko objavo.)
+"
+2022-11-18 13:00:00,"1.  a) Lokacija: 4 (Nekatere lokacije so delno pravilne, npr. ""pomurska avtocesta"", ""dolenjska avtocesta"", ""štajerska avtocesta"", ""gorenjska avtocesta"", vendar z netočnimi podrobnostmi.)
+2.  b) Tip dogodka: 7 (Večina tipov dogodkov je pravilna - ""prometna nesreča"", ""pokvarjen avtobus/vozilo"", ""dela"", ""zastoj"", vendar ne na pravih lokacijah.)
+3.  c) Smer: 4 (Nekatere smeri so pravilne, vendar z netočnimi podrobnostmi, npr. ""proti Obrežju"" namesto ""proti Ljubljani"".)
+4.  d) Neprisotni dogodki: 3 (Precej informacij o natančnih lokacijah in podrobnostih ni prisotnih v pravilnem poročilu.)
+
+5.  a) Jedernatost: 6 (Poročilo je preobširno in vsebuje preveč podrobnosti, ki niso nujne za radijsko poročanje.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 5 (Poročilo je povprečno, z nekaj netočnostmi in preveč podrobnostmi.)
+9.  e) Primernost: 5 (Poročilo je manj primerno za radijsko objavo, ker je preobširno in vsebuje netočnosti.)
+"
+2023-10-19 08:10:00,"1.  a) Lokacija: 0 (Nobena lokacija ni pravilna.)
+2.  b) Tip dogodka: 3 (Tip dogodka ""dela"" je omenjen, vendar na napačni lokaciji.)
+3.  c) Smer: 0 (Nobena smer ni pravilna.)
+4.  d) Neprisotni dogodki: 0 (Vsi dogodki so napačni.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje napačne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 2 (Zaradi napačnih informacij je kvaliteta zelo nizka.)
+9.  e) Primernost: 2 (Zaradi napačnih informacij je poročilo neprimerno za radijsko objavo.)
+"
+2022-02-05 12:00:00,"1.  a) Lokacija: 4 (Nekatere lokacije so delno pravilne, npr. ""Divača - Ribnica"", ""mejni prehodi"", vendar z netočnimi podrobnostmi.)
+2.  b) Tip dogodka: 7 (Večina tipov dogodkov je pravilna - ""prometna nesreča"", ""dela"", ""zaprta cesta"", ""povečan promet"", vendar ne na pravih lokacijah.)
+3.  c) Smer: 3 (Nekatere smeri so pravilne, vendar z netočnimi podrobnostmi, npr. ""proti Mariboru"" namesto ""proti Ljubljani"".)
+4.  d) Neprisotni dogodki: 4 (Precej informacij o natančnih lokacijah in podrobnostih ni prisotnih v pravilnem poročilu.)
+
+5.  a) Jedernatost: 6 (Poročilo je preobširno in vsebuje preveč podrobnosti, ki niso nujne za radijsko poročanje.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 5 (Poročilo je povprečno, z nekaj netočnostmi in preveč podrobnostmi.)
+9.  e) Primernost: 5 (Poročilo je manj primerno za radijsko objavo, ker je preobširno in vsebuje netočnosti.)
+"
+2022-11-18 10:00:00,"1.  a) Lokacija: 6 (Dve lokaciji sta delno pravilni: ""glavna cesta od Trzina proti Domžalam/Ljubljani"" in ""gorenjska avtocesta"", vendar ne natančno.)
+2.  b) Tip dogodka: 8 (Trije tipi dogodka so pravilni: ""povožena žival"", ""dela"", ""zastoj"", vendar ne na vseh navedenih lokacijah.)
+3.  c) Smer: 7 (Dve smeri sta pravilni: ""proti Karavankam"" in ""proti Domžalam/Trzinu"", vendar ne natančno.)
+4.  d) Neprisotni dogodki: 6 (Nekatere informacije o delih na ljubljanski severni obvoznici niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje preveč podrobnosti, ki niso nujne za radijsko poročanje.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 6 (Poročilo je zadovoljivo, vendar z nekaj netočnostmi pri lokacijah in dogodkih.)
+9.  e) Primernost: 7 (Poročilo je precej primerno za radijsko objavo.)
+"
+2023-01-05 10:30:00,"1.  a) Lokacija: 5 (Dve lokaciji sta delno pravilni: ""širše območje Nanosa"" in ""štajerska avtocesta"", vendar ne natančno.)
+2.  b) Tip dogodka: 7 (Dva tipa dogodka sta pravilna: ""gosta megla"" in ""dela"", vendar ne na vseh navedenih lokacijah.)
+3.  c) Smer: 3 (Ena smer je delno pravilna: ""proti Mariboru"" bi lahko bila povezana s štajersko avtocesto, vendar je dogodek napačen.)
+4.  d) Neprisotni dogodki: 5 (Nekatere informacije o delih na dolenjski avtocesti in pokvarjenem vozilu na štajerski avtocesti niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 8 (Poročilo je jedrnato in podaja ključne informacije.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 9 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 6 (Poročilo je zadovoljivo, vendar z nekaj netočnostmi pri lokacijah in dogodkih.)
+9.  e) Primernost: 7 (Poročilo je precej primerno za radijsko objavo.)
+"
+2022-10-26 09:00:00,"1.  a) Lokacija: 4 (Nekatere lokacije so delno pravilne, npr. ""Moravče-Mirna"", ""mejni prehod Gruškovje"", vendar ne natančno.)
+2.  b) Tip dogodka: 6 (Nekateri tipi dogodka so pravilni, npr. ""dela"", ""pokvarjeno vozilo"", ""zaprt"", ""čakanje"", vendar ne na pravih lokacijah.)
+3.  c) Smer: 3 (Ena smer je delno pravilna: ""proti Mariboru"" bi lahko bila povezana s pomursko avtocesto, vendar je dogodek napačen.)
+4.  d) Neprisotni dogodki: 4 (Precej informacij o delih na pomurski avtocesti in pokvarjenem vozilu na dolenjski avtocesti niso prisotne v pravilnem poročilu.)
+
+5.  a) Jedernatost: 7 (Poročilo je jedrnato, vendar vsebuje preveč podrobnosti, ki niso nujne za radijsko poročanje.)
+6.  b) Slovnična pravilnost: 10 (Slovnično je poročilo pravilno.)
+7.  c) Stil: 8 (Stil je primeren za radijsko poročanje.)
+8.  d) Celotna kvaliteta: 5 (Poročilo je povprečno, z nekaj netočnostmi pri lokacijah in dogodkih.)
+9.  e) Primernost: 6 (Poročilo je precej primerno za radijsko objavo, vendar bi ga bilo treba skrajšati in popraviti netočnosti.)
+"

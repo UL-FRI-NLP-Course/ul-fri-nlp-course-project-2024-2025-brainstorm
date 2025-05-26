@@ -103,7 +103,7 @@ def estimate_token_count(text, model_name='gemini-2.0-flash'):
         print(f"Error counting tokens: {e}")
         return len(text) // 4  # Fallback to simple estimation
 
-def process_csv_with_multiple_prompts(df_porocila):
+def process_csv_with_multiple_prompts(df_porocila, report_number="1"):
     try:
         chat_session = initialize_chat_session() 
         extracted_data = []
@@ -137,15 +137,19 @@ def process_csv_with_multiple_prompts(df_porocila):
             df.to_csv('eval_w_gemini.csv', encoding='utf-8', index=False)
             
         df = pd.DataFrame(extracted_data, columns=['Datum', 'Prometni_dogodki'])
-        df.to_csv('eval_w_gemini.csv', encoding='utf-8', index=False)
+        df.to_csv(f'eval_w_gemini-{report_number}.csv', encoding='utf-8', index=False)
                 
     except Exception as e:
         print(f"Error processing", e)
         
+        
 if __name__ == "__main__":
     print("Starting Gemini for generated traffic report evaluation.")
+
+    FILE_NAME = "generated_reports_57976558.json"
+    EXTRACTED_FILE_NUMBER = FILE_NAME.split("_")[-1].split(".")[0]
         
-    df_results = pd.read_json("generated_reports_example.json")
+    df_results = pd.read_json(FILE_NAME)
     col_names = ['timestamp', 'events', 'generated_report', 'target_report']
         
-    process_csv_with_multiple_prompts(df_results)
+    process_csv_with_multiple_prompts(df_results, EXTRACTED_FILE_NUMBER)

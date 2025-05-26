@@ -19,7 +19,9 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 \documentclass[fleqn,moreauthors,10pt]{ds_report}
+\usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
+\usepackage{float}
 
 \graphicspath{{fig/}}
 
@@ -47,7 +49,7 @@
 \affiliation{\textit{Advisors: Slavko Žitnik}}
 
 % Keywords
-\Keywords{LLM, Traffic}
+\Keywords{LLM, Traffic report, Traffic, Report generation}
 \newcommand{\keywordname}{Keywords}
 
 
@@ -56,7 +58,7 @@
 %----------------------------------------------------------------------------------------
 
 \Abstract{
-% The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here. The abstract goes here.
+This project addresses the automated generation of Slovenian traffic news for RTV Slovenija using Large Language Models (LLMs). The primary objective was to develop an efficient system for producing stylistically consistent and factually accurate reports. Key methodologies included a multi-stage data preprocessing pipeline to align raw traffic data with compiled RTV reports, utilizing Gemini 2.0 Flash and a Slovene BERT model (\texttt{rokn/slovlo-v1}). Initial prompt engineering with various LLMs informed the subsequent fine-tuning of the Slovenian GaMS-9B-Instruct model via Low-Rank Adaptation (LoRA) on an HPC cluster. The fine-tuned model's performance was systematically evaluated using different generation parameters, employing quantitative metrics (BLEU, ROUGE, METEOR) and LLM-based heuristic assessments. Results demonstrated that a configuration with a temperature of 0.4 and repetition penalty of 1.2 yielded optimal performance, achieving strong lexical similarity (e.g., ROUGE-L F1 of 0.593) and high heuristic scores for factual accuracy and qualitative aspects, affirming the viability of this approach for automated traffic report generation.
 }
 
 %----------------------------------------------------------------------------------------
@@ -77,15 +79,13 @@
 %----------------------------------------------------------------------------------------
 
 \section*{Introduction}
-	Our initial goal is to leverage an open-source large language model (LLM) capable of generating text in Slovenian to automate the process of traffic report generation for RTV SLO. By doing so, we aim to streamline and enhance the efficiency of producing structured reports while ensuring consistency in formatting and adherence to predefined guidelines.
+The timely and accurate dissemination of traffic information is a vital public service. This project confronts the challenge of automating the generation of Slovenian-language radio traffic reports for RTV Slovenija, with the twin goals of enhancing operational efficiency and ensuring stylistic consistency compared to manual preparation methods. Traditional report generation can be resource-intensive; thus, leveraging Large Language Models (LLMs) offers a promising pathway for optimization and improved service delivery.
 
-    To achieve this, we plan to train the LLM to learn the specific formatting and stylistic requirements from existing data. This will allow the model to generate reports that align with the required standards without the need for extensive manual editing. Since using a large-scale model can be resource-intensive, we also intend to fine-tune a smaller, more efficient LLM tailored to our specific use case. This smaller model would retain the necessary capabilities while reducing computational costs, making it more practical for real-world deployment.
-    
-    If time permits, we aim to extend the project by integrating automatic translation features for languages commonly spoken in Slovenia, such as English, German, and Italian. This would make the generated reports more accessible to a wider audience. As a potential final step, we may also explore the implementation of text-to-speech functionality, particularly for English, to further enhance accessibility and usability.
-    
-    Through this approach, we seek to develop a scalable and efficient solution for automated report generation that meets the needs of Slovenian-speaking users while incorporating multilingual and accessibility features as an added value.
-    
+This study details the development of such an automated system. A foundational step was extensive data preprocessing, where we engineered a sophisticated pipeline to map and align two linked data sources: granular, raw traffic event data and the structured, compiled traffic reports as broadcast by RTV Slovenija. This process, crucial due to the inherent summarization and filtering performed by human reporters, involved using models like Gemini 2.0 Flash for structured event extraction and a Slovene BERT model (\texttt{rokn/slovlo-v1}) for semantic matching.
 
+Following data preparation, we explored prompt engineering strategies across various pre-trained LLMs, including Gemini, Mistral-AI, Llama, and DeepSeek. The insights gained informed our primary experimental focus: the fine-tuning of the Slovene-specific GaMS-9B-Instruct model. This was accomplished using Low-Rank Adaptation (LoRA) on a High-Performance Computing (HPC) cluster, necessitating the development of a concise prompt structure tailored to the model's constraints and the fine-tuning process itself. To ensure robust outputs, a rule-based post-processing step was also integrated into our generation pipeline.
+
+The efficacy of our fine-tuned model was then rigorously assessed under various generation parameter configurations. This evaluation employed a dual strategy: established quantitative NLP metrics (BLEU, ROUGE, METEOR) provided lexical similarity measures, while an LLM-based heuristic evaluation using Gemini 2.0 Flash offered insights into factual correctness and qualitative aspects of the generated reports. This report presents these methodologies, discusses the evaluation findings, and outlines potential future work, thereby contributing to the development of automated, high-quality traffic news generation in Slovenian.
 %------------------------------------------------
 
 \section*{Related works}
@@ -103,54 +103,248 @@ This work focuses on the automatic generation of traffic reports from traffic da
 Article \textbf{A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT} explores possibilities of formatting prompts for existing LLMs, guiding them to ensure certain form and rules of the generated output. This could be used for the first part of the task, where our task would lead us to initially use prompt engineering for traffic report generation.
 
 \section*{Methods}
+Our approach started with an exploration of various Large Language Models (LLMs) and prompt engineering techniques to establish a baseline for generating Slovenian traffic reports.
 
+\subsection*{Initial Model Exploration and Prompt Engineering}
+Initial efforts focused on leveraging pre-trained LLMs. We began with Google's Gemini Flash 2.0, accessed via API due to its large parameter size, extensive context window, and to circumvent HPC stability issues encountered at the time. This allowed for rapid iteration on complex prompt designs aimed at eliciting structured and stylistically appropriate Slovenian traffic reports.
 
-The first method we employed was \textbf{prompt engineering} to generate traffic news based on the data provided in the table. For our initial model selection, we decided to use a larger model — \textbf{Gemini Flash 2.0} — due to its ease of use, large parameter size, and extensive context window.
+Concurrently, we explored the feasibility of running models locally. This included successful prompt engineering experiments with a 7B parameter Mistral-AI model. Attempts to utilize larger open-source models like a Llama 2 17B with 128 experts proved challenging due to its large size (approx. 400B parameters) exceeding available resources. A smaller variant, Llama 2 17B with 16 experts, and the DeepSeek LLM 7B Base model were also considered as more resource-efficient alternatives.
 
-We observed that the HPC environment had multiple issues, including stability problems, frequent downtime, and difficulties compiling necessary libraries. To expedite our testing process, we accessed the Gemini model via an API key, which allowed us to avoid these HPC-related issues.
+Further prompt engineering tests were conducted with other smaller models, such as Llama 3 (8B) and another DeepSeek LLM (7B). These experiments highlighted several challenges inherent in using general-purpose smaller models for this specialized task. We observed that:
+\begin{itemize}
+    \item Performance with complex prompts containing multiple examples and detailed instructions was generally inferior to that of larger models like Gemini 2.0. Simpler template-based prompts yielded slightly better, but still suboptimal, results.
+    \item Slovenian language proficiency was a significant limiting factor for these smaller models, often resulting in reports with grammatical errors or unnatural phrasing.
+    \item Adherence to strict stylistic requirements for radio broadcast (conciseness, specific terminology, implicit structure) was difficult to achieve consistently. In some instances, models defaulted to English output if not explicitly constrained.
+\end{itemize}
+These initial findings underscored the limitations of relying solely on prompt engineering with readily available smaller models for our specific requirements. While larger models like Gemini showed more promise with sophisticated prompting, the need for a more robust, adaptable, and potentially more resource-efficient solution led us to focus on comprehensive data preprocessing and the subsequent fine-tuning of a Slovene-specific model, GaMS-9B, as detailed in the following sections. The insights gained from this initial exploratory phase, particularly regarding prompt structure and desired output characteristics,shaped our data preparation and fine-tuning strategies.
 
-In addition to API-based testing, we attempted to run models locally via SSH. We successfully loaded the \textbf{Mistral-AI model} with 7B parameters and conducted experiments with prompt engineering. We also attempted to load \textbf{Llama 4.0 17B with 128 experts}, but we did not initially account for the model’s full size (approximately 400B parameters), and therefore were unable to complete testing with it.
+% \subsection*{Data Problems}
 
-As an alternative, we chose to use a smaller version of \textbf{Llama 17B} with 16 experts, which should be able to run on a single GPU. 
-
-Additionally, for a more competitive smaller model, we selected the \textbf{DeepSeek LLM 7B Base} model to further optimize performance and resource usage.
-
+% Since the data provided is a real case scenario, there are impurities and problems within the data that can represent an obstacle when generating a traffic report. 
+% The intervals of the reports do not follow a strict daily structure. During most hours of the days, there is a 30 minute interval between the traffic reports. However, that is not the case every time. Another anomaly are the cases of emergent traffic reports, such as when there is a driver driving in the opposite direction on a highway, etc. 
+% Oftentimes, it is troublesome to determine the interval of the input data that corresponds to the output data. Reaction time, namely the time from the start of the traffic event to when the event was included in the report, is not always even. This is probably due to the human factor of the report generation so far. If the reports were generated solely  using LLMs in real time, the reports could be more up to date and reflect the actual traffic situation better. 
+% Another problem is deciding whether to include a certain type of input data. Most reports include information about accidents, obstacles and traffic jams as priority information. Sometimes, information about roadwork, weather conditions and general announcements are included as well, but not always, especially if the report is already long enough when it includes other, more important data. 
+% Sometimes, reports include information about when the traffic jam is cleared or when there are no more obstacles on the road. Input data rarely includes the information about such events, rather including information about start, not the end of such events.
 
 \subsection*{Data Preprocessing}
+A significant challenge in this project was the nature of the provided data. We were supplied with two main data sources: 1) granular, time-stamped raw traffic event data, often consisting of many individual entries within a short time frame (from \texttt{podatki\_input.xlsx}), and 2) compiled traffic reports as broadcast by RTV Slovenija, which summarize multiple events (from \texttt{porocila\_data.csv}). A direct one-to-one mapping between individual raw input lines and the final compiled reports was not apparent, as human reporters aggregate, filter, and rephrase information. To create a structured dataset suitable for training or prompting a model to generate reports, we implemented a multi-step preprocessing pipeline.
 
-We noticed that the data from the report is not generated solely from a single line in the table and that the lines in the table do not correlate one-to-one with the provided news reports. Many details are merged or omitted in the final report, and some information is carried over from previous entries in the traffic data array.
+\subsubsection*{Step 1: Event Extraction from RTV Reports}
+To understand the specific events covered in each official RTV report, we first needed to extract structured information from the narrative text of these reports. We utilized a Large Language Model, specifically Google's Gemini 2.0 Flash.
+For each report in \texttt{porocila\_data.csv}, a prompt was designed to instruct the LLM to identify and list individual traffic events. The target output format was a structured string: \texttt{LOKACIJA: <lokacija> | SMER: <smer> | TIP: <tip dogodka>}. 
+The generation process used an initial temperature of 0.3. To handle potential API limitations, such as recitation errors, the script included a retry mechanism. If an error was encountered, the script would wait for a short period and then attempt the extraction again, sometimes with an adjusted temperature and a slightly rephrased prompt to encourage paraphrasing. The extracted structured events for each RTV report were saved to an intermediate CSV file (e.g., \texttt{prometni\_dogodki\_llm2.csv}).
 
-To address these issues, we decided to preprocess our data to enable easier prompt generation and ensure that each record in our training data is clearly labeled. Our goal was to combine multiple lines from the traffic information data into a single, more informative package, thus avoiding repetition in the prompts sent to the model.
+\subsubsection*{Step 2: Aligning Extracted Events with Raw Input Data}
+Once we had a list of specific events for each RTV report, the next step was to find the most relevant entries in the raw, granular traffic data (\texttt{podatki\_input.xlsx}) that corresponded to these extracted events. This was crucial for constructing a plausible input context that a human reporter might have used.
 
-For the additional information found in the traffic data tables, we decided to remove columns that were not relevant or were not used in the final reports, such as weather data, general news, and extensive road closure listings. We found that the raw traffic data listed all road closures across the country, but not all of this information was included in the final reports from RTV Slovenija. Therefore, we omitted such details from the prompt preparation as well.
+The core of this alignment process involved semantic similarity matching using sentence embeddings. We employed a Slovene BERT-based model, \texttt{rokn/slovlo-v1}, to generate embeddings for both the LLM-extracted events (from Step 1) and the candidate raw input data segments. The raw input data itself required preprocessing:
+\begin{itemize}
+    \item Text from various columns (e.g., \texttt{ContentNesreceSLO}, \texttt{ContentZastojiSLO}) was used.
+    \item HTML-like tags (e.g., \texttt{<p>}) were stripped from certain fields (like \texttt{A1}, \texttt{B1}).
+    \item To provide context, column names were sometimes prepended to the content (e.g., "Nesrece: <event description>").
+\end{itemize}
 
+For each RTV report (and its associated LLM-extracted events):
+\begin{enumerate}
+    \item A temporal window of raw input data entries preceding the RTV report's timestamp was selected (e.g., entries from the last 1.5 hours, looking at the last 30-50 records).
+    \item For each LLM-extracted event connected to the current RTV report, its embedding was compared against the embeddings of all text segments within the selected window of raw input data using cosine similarity.
+    \item The raw input segments with the highest similarity scores (above a certain threshold) were considered the most relevant sources for that specific event mentioned in the RTV report.
+\end{enumerate}
+The collection of these best-matching raw input segments for all events in a given RTV report was then aggregated to form a consolidated "input prompt" text. This aggregated text, paired with the original RTV report, formed an input-output example for our subsequent report generation tasks. The results were saved to files like \texttt{matched\_events\_quality.csv}.
 
+\subsubsection*{Step 3: Final Data Cleanup}
+As a final step, minor cleaning was performed on the target RTV reports mainly to remove boilerplate header lines from the \texttt{Porocilo} field of the reports, ensuring that the model would learn to generate only the core content of the traffic news.
 
 \subsection*{Prompt Engineering}
+Effective prompt engineering was crucial for guiding the LLMs to generate traffic reports that meet the specific stylistic and content requirements of RTV Slovenija. Our approach to prompt design evolved, particularly when transitioning from general-purpose models accessed via API to fine-tuning a domain-specific model with token limitations.
 
-To help the models generate outputs similar to the desired results, we instructed them to act as RTV Slovenija reporters tasked with creating traffic news reports. We provided detailed guidelines describing how the reports should look. 
+Initial prompts, designed for larger models such as Gemini, were highly detailed. These prompts instructed the model to act as an RTV Slovenija reporter and included extensive guidelines covering:
+\begin{itemize}
+    \item \textbf{Input Data Handling:} Prioritizing recency, extracting key information (type, location, direction, consequences), and handling missing information.
+    \item \textbf{Language Constraints:} Enforcing active voice, specific location/direction phrasing, a precise date/time format (e.g., "DD. M. YYYY ob HH:MM"), avoidance of English expressions, and the use of standard Slovenian traffic terminology.
+    \item \textbf{Content Filtering and Significance:} Defining criteria for including incidents and filtering based on the report time.
+    \item \textbf{Stylistic Approach and Formatting:} Requiring short, informative sentences, a specific report header and avoidance of markdown or HTML.
+\end{itemize}
 
-From analyzing the final reports, we found that the most important aspects the model must be aware of are the need for extremely concise, radio-friendly reports in Slovenian, adherence to language norms, relevance filtering, stylistic consistency, strict length limits, and maintaining an implicit structure without the use of subtitles.
+This detailed prompt aimed to provide comprehensive guidance to general-purpose LLMs. While initial experiments with such prompts yielded structured outputs, the considerable length and complexity of the prompt (often exceeding several thousand tokens when including examples) proved problematic when preparing for fine-tuning the Slovenian GaMs-9b model. The GaMs-9b model has a more restrictive input token limit, and using such a long prompt for every training instance would exceed these limits, causing training failures.
 
-In the initial prompt, we also included a few examples from the dataset that the model could reference to better understand the desired structure and order.
+Therefore, for the fine-tuning phase with GaMs-9b, a significantly more concise prompt was developed. This shorter prompt, crafted in Slovenian, focused on the core requirements and was designed to be combined with the input data to fit within the model's operational token limits. The simplified prompt used for preparing the fine-tuning dataset was:
+\begin{verbatim}
+Generiraj prometno poročilo v 
+slovenščini za radio.
+Upoštevaj standardno strukturo:
+1. Začni z "Prometne informacije 
+[datum] [čas] za Radio Slovenija"
+2. Vključi samo 
+pomembne prometne dogodke
+3. Uporabljaj 
+trpne oblike in ustrezno terminologijo
+4. Poročilo naj 
+bo jedrnato (<1 min branja)
 
-The detailed prompt structure can be found in the file \texttt{gemini-api/gemini\_API\_reporter.py}.
+Podatki o prometu:
+\end{verbatim}
+This shorter prompt, prepended to the actual traffic data, formed the input for the GaMs-9b model during the fine-tuning process. The expectation was that the desired detailed stylistic elements and content selection nuances, would be learned by the model through the fine-tuning process itself, by observing the patterns in the provided input-output examples. The original detailed guidelines informed the construction of the target outputs in the fine-tuning dataset.
 
-\section*{Observations}
+\subsection*{Fine-tuning GaMS-9B for Traffic Report Generation}
+To adapt a pre-trained model specifically for the task of generating Slovenian traffic reports with the required stylistic nuances and content focus, we fine-tuned the GaMS-9B-Instruct model. This process involved careful data preparation, configuration of the fine-tuning parameters using LoRA, and execution on the HPC cluster.
 
-Our observations from generating reports using prompt engineering show that the models follow the given rules very consistently and are capable of creating reports that are quite similar to those from RTV Slovenija. However, we found that the reports generated by the LLMs are significantly longer, mainly because they include unnecessary details that human reporters typically omit. 
+\subsubsection*{Model and Environment}
+The base model selected for fine-tuning was GaMS-9B-Instruct. Fine-tuning was performed using PyTorch and the Hugging Face Transformers library. To manage computational resources efficiently, Parameter-Efficient Fine-Tuning (PEFT) was employed, specifically using LoRA.
 
-Additionally, reporters often simplify the location of accidents or traffic jams to make the information easier for listeners to understand. In contrast, the LLMs tend to be more precise and provide exact locations based on the input data.
+The fine-tuning jobs were executed on an HPC cluster with each job typically requesting 2 GPUs, 16 CPUs per task, and 160GB of memory, with a time limit of 24 hours.
 
-\section*{Future Directions and Ideas}
+\subsubsection*{Data Preparation and Loading}
+The dataset for fine-tuning contained pairs of preprocessed input traffic data and corresponding target RTV reports.
 
-We plan to test the different LLMs we mentioned earlier in more detail and further optimize the prompting strategies for each model. Due to differences in model size, architecture, and behavior, we expect that prompts will need to be tailored specifically to each model to achieve the best results.
+Key steps in data preparation included:
+\begin{itemize}
+    \item \textbf{Prompt Formatting:} Each training instance was formatted into a conversational structure suitable for the GaMS-9B-Instruct model. The instructions, along with the actual \texttt{input\_text} (the preprocessed raw traffic data), formed the `user` turn. The target RTV report formed the `model` turn. The entire training example was wrapped with \texttt{<bos>...<eos>} tokens
+    \item \textbf{Input Cleaning:} Basic cleaning, such as removing HTML tags and normalizing whitespace from the input data, was performed. Empty inputs were handled by replacing them with a default phrase like "Ni posebnih prometnih podatkov.".
+    \item \textbf{Tokenization:} The Hugging Face \texttt{AutoTokenizer} was used. A pad token was set to the EOS token if not already present. Inputs were tokenized, padded to \texttt{MAX\_SEQ\_LENGTH} (512 tokens), and truncated if necessary.
+    \item \textbf{Label Masking:} To ensure the model only learns to predict the target report, the tokens corresponding to the user message (instruction and input data) in the `labels` were masked by setting them to -100.
+\end{itemize}
 
-Additionally, we are working on improving our current prompting approach by making the generated reports more concise and by integrating domain-specific knowledge. This should help the models simplify the reporting style and present the locations of traffic incidents in a way that is easier for listeners to understand.
+\subsubsection*{Fine-tuning with LoRA}
+To efficiently adapt the GaMS-9B model for our specific task, we employed the LoRA technique. The model was prepared for k-bit training, and then the LoRA configuration was applied using \texttt{get\_peft\_model}.
 
-One of our goals is to better align the two provided datasets in order to streamline and simplify the generation of traffic news.
+A custom training loop was implemented to fine-tune the model. For each of the 3 epochs, the process involved standard steps: calculating the loss on each batch, performing backpropagation, and updating model weights using the AdamW optimizer with a learning rate of 2e-4 and a linear learning rate scheduler. We used a batch size of 2, augmented by 8 gradient accumulation steps, leading to an effective batch size of 16. Model checkpoints and training logs, including average loss per epoch, were saved to facilitate monitoring and model selection.
 
-Our final objective is to fine-tune the models on the provided data to encourage the use of language and style that more closely matches that of human reporters. We also aim to help the models internalize domain-specific knowledge by retraining them through the regeneration of traffic reports.
+\subsubsection*{Generation and Testing}
+The performance of the fine-tuned model was assessed through report generation tasks. This occurred both after each training epoch (using the \texttt{test\_generation\_after\_epoch} function) and through more comprehensive evaluations using dedicated scripts executed via SLURM scripts.
+
+For inference, the fine-tuned LoRA weights were loaded onto the base GaMS-9B-Instruct model from a chosen checkpoint. Critically, the conversational prompt structure and user message content used during inference mirrored those from the training phase to ensure consistency. Generation parameters, including \texttt{max\_new\_tokens}, \texttt{temperature}, and \texttt{repetition\_penalty}, were configured to produce coherent and concise reports.
+
+A significant step in the generation pipeline was the application of a rule-based post-processing function. This function addressed common grammatical and stylistic issues in the raw model output, such as converting passive to active voice where appropriate for Slovenian traffic reports (e.g., 'Cesta je zaprta' to 'Zaprta je cesta'), standardizing terminology, correcting spacing, and ensuring proper punctuation. The final reports, including a standard header with date, time, and program information, were saved as JSON files for later quantitative and qualitative evaluation.
+This comprehensive fine-tuning and testing pipeline allowed for iterative development and evaluation of the GaMS-9B model tailored for Slovenian traffic report generation.
+
+\section*{Evaluation}
+To assess the performance of the fine-tuned GaMS-9B model and understand the impact of different generation parameters, we employed a combination of automated quantitative metrics and LLM-based heuristic evaluation.
+
+\subsection*{Evaluation Methodology}
+The generated traffic reports from five different generation configurations (varying temperature and repetition penalty) of the fine-tuned GaMS-9B model were evaluated against a common test dataset. Each configuration is identified by the suffix of its corresponding output file (e.g., 57975885).
+
+\subsubsection*{Quantitative Metrics}
+Standard NLP metrics were calculated to compare the similarity between the model-generated reports and the ground truth (target) reports. The metrics include:
+\begin{itemize}
+    \item \textbf{BLEU (Bilingual Evaluation Understudy):} Measures n-gram precision between the candidate and reference texts. A smoothing function (method4) was applied.
+    \item \textbf{ROUGE (Recall-Oriented Understudy for Gisting Evaluation):} Calculates overlap of n-grams, word sequences, and word pairs. We focused on ROUGE-1, ROUGE-2, and ROUGE-L F1-scores.
+    \item \textbf{METEOR (Metric for Evaluation of Translation with Explicit ORdering):} Computes a score based on unigram precision and recall, with a penalty for incorrect word order, also considering stemming and synonymy.
+\end{itemize}
+
+\subsubsection*{LLM-based Heuristic Evaluation}
+In addition to automated metrics, we utilized Google's Gemini 2.0 Flash model for a heuristic evaluation of the generated reports, as implemented in \texttt{evaluation\_gemini.py}. For each generated report and its corresponding target report, Gemini was prompted to assess several aspects on a scale of 0 to 10 and provide a brief justification. The evaluated aspects were:
+\begin{itemize}
+    \item \textbf{Factual Correctness:}
+        \begin{itemize}
+            \item [1a)] Percentage of correctly identified locations.
+            \item [1b)] Percentage of correctly identified event types (e.g., accident, jam).
+            \item [1c)] Percentage of correctly identified directions.
+            \item [1d)] Number of events in the generated report not present in the target (lower score for more extraneous events, so 10 - count).
+        \end{itemize}
+    \item \textbf{Qualitative Aspects:}
+        \begin{itemize}
+            \item [2a)] Conciseness.
+            \item [2b)] Grammatical correctness.
+            \item [2c)] Stylistic appropriateness.
+            \item [2d)] Overall quality.
+            \item [2e)] Suitability for radio broadcast.
+        \end{itemize}
+\end{itemize}
+
+\subsection*{Results and Analysis}
+We tested five configurations of generation parameters for the fine-tuned GaMS-9B model. The configurations and their corresponding performance on quantitative and LLM-based heuristic metrics are presented below.
+
+\subsubsection*{Impact of Generation Parameters on Quantitative Metrics}
+Table~\ref{tab:quant_metrics} summarizes the average BLEU, ROUGE F1-scores, and METEOR scores for each configuration.
+
+\begin{table*}[!tbp]
+\centering
+\caption{Average Quantitative Metrics for Different Generation Configurations}
+\label{tab:quant_metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Metric} & \textbf{C1 (T=0.3, RP=1.1)} & \textbf{C2 (T=0.4, RP=1.2)} & \textbf{C3 (T=0.6, RP=1.4)} & \textbf{C4 (T=0.8, RP=1.6)} & \textbf{C5 (T=1.0, RP=1.8)} \\
+\textbf{File ID Suffix} & \texttt{...5885} & \texttt{...6261} & \texttt{...6312} & \texttt{...6442} & \texttt{...6558} \\
+\midrule
+BLEU & 0.377 & 0.363 & 0.241 & 0.096 & 0.090 \\
+ROUGE-1 F1 & 0.659 & 0.670 & 0.544 & 0.231 & 0.216 \\
+ROUGE-2 F1 & 0.476 & 0.482 & 0.334 & 0.132 & 0.123 \\
+ROUGE-L F1 & 0.579 & 0.593 & 0.439 & 0.199 & 0.185 \\
+METEOR & 0.644 & 0.655 & 0.531 & 0.262 & 0.244 \\
+\bottomrule
+\end{tabular}
+}
+\footnotesize{\\C = Configuration, T = Temperature, RP = Repetition Penalty.}
+\end{table*}
+
+\textbf{Analysis of Quantitative Metrics:}
+As observed in Table \ref{tab:quant_metrics}, lower temperatures (0.3-0.4) and lower repetition penalties (1.1-1.2) generally yielded higher scores across all quantitative metrics. Configuration C2 shows slightly better ROUGE and METEOR scores compared to C1, which has a slightly better BLEU score. As temperature and repetition penalty increase (C3 to C5), there is a clear and significant degradation in performance across all these lexical similarity metrics. This suggests that more deterministic generation (lower temperature) and less aggressive penalization of repetition lead to outputs that are lexically closer to the target reports.
+
+\subsubsection*{Impact of Generation Parameters on LLM-based Heuristic Evaluation}
+Table~\ref{tab:gemini_metrics} presents the average scores (0-10 scale) from the Gemini 2.0 Flash heuristic evaluation for each configuration.
+
+\begin{table*}[tbp] % Spans both columns
+\centering
+\caption{Average LLM-based Heuristic Evaluation Scores for Different Generation Configurations}
+\label{tab:gemini_metrics}
+\resizebox{1\textwidth}{!}{% Resize to 75% of the full text width
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Gemini Metric} & \textbf{C1 (T=0.3, RP=1.1)} & \textbf{C2 (T=0.4, RP=1.2)} & \textbf{C3 (T=0.6, RP=1.4)} & \textbf{C4 (T=0.8, RP=1.6)} & \textbf{C5 (T=1.0, RP=1.8)} \\
+\textbf{File ID Suffix} & \texttt{...5885} & \texttt{...6261} & \texttt{...6312} & \texttt{...6442} & \texttt{...6558} \\
+\midrule
+1a. Correct Location (\%) & 6.80 & 7.15 & 5.40 & 3.45 & 3.70 \\
+1b. Correct Event Type (\%) & 8.35 & 8.80 & 7.20 & 4.50 & 5.45 \\
+1c. Correct Direction (\%) & 8.20 & 8.05 & 6.05 & 2.70 & 3.30 \\
+1d. Absence of Extra Events & 5.05 & 6.10 & 4.60 & 1.70 & 1.75 \\
+\textbf{Avg. Factual Correctness} & \textbf{7.10} & \textbf{7.53} & \textbf{5.81} & \textbf{3.09} & \textbf{3.55} \\
+\midrule
+2a. Conciseness & 7.80 & 8.20 & 7.50 & 2.30 & 2.45 \\
+2b. Grammatical Correctness & 9.90 & 10.00 & 10.00 & 3.55 & 4.30 \\
+2c. Stylistic Appropriateness & 8.20 & 8.85 & 8.30 & 2.65 & 3.15 \\
+2d. Overall Quality & 7.00 & 7.70 & 5.95 & 2.45 & 2.70 \\
+2e. Radio Suitability & 8.00 & 8.50 & 6.55 & 2.40 & 2.85 \\
+\textbf{Avg. Qualitative Aspects} & \textbf{8.18} & \textbf{8.71} & \textbf{7.66} & \textbf{2.67} & \textbf{3.09} \\
+\bottomrule
+\end{tabular}%
+} 
+\footnotesize{\\C = Configuration, T = Temperature, RP = Repetition Penalty}
+\end{table*}
+
+\textbf{Analysis of LLM-based Heuristic Evaluation:}
+The Gemini evaluations, summarized in Table \ref{tab:gemini_metrics}, largely corroborate the findings from the quantitative metrics. Configuration C2 (Temp=0.4, RP=1.2) achieved the highest average scores for both factual correctness (7.53) and qualitative aspects (8.71). Similar to the lexical metrics, as temperature and repetition penalty increase (C3 to C5), there is a marked decline in the quality of generated reports according to Gemini's assessment. Specifically, higher temperature and repetition penalty led to reports that were less factually accurate (e.g., incorrect locations, types, directions, and more extraneous or hallucinated events) and scored lower on conciseness, style, overall quality, and radio suitability. Grammatical correctness remained high for C1, C2 and C3, but dropped significantly for C4 and C5, indicating that very high temperature/repetition penalty can lead to incoherent or grammatically flawed outputs.
+The Gemini evaluation provides more nuanced insights. For instance, while C1 and C2 have comparable quantitative scores, C2 is rated slightly higher by Gemini, particularly on qualitative aspects like conciseness and stylistic appropriateness. The justifications provided often pointed to issues like hallucinated details or misinterpretation of input events in the lower-performing configurations (C4, C5), which lexical metrics alone might not fully capture. For example, reports from C4 and C5 were often flagged as containing completely irrelevant information or being stylistically inappropriate.
+
+\subsubsection*{Qualitative Examples}
+Examining specific examples from the output files \textit{57976261} for C2 vs. \textit{57976558} for C5 illustrates these differences.
+
+For instance, for the input events on \textit{2022-01-10 17:30:00}:
+\begin{itemize}
+    \item \textbf{Input Events:} "Cesta čez prelaz Vršič je zaprta. Na gorenjski avtocesti pred predorom Karavanke proti Avstriji zastoj tovornih vozil, 500 m. Čakalna doba je na mejnih prehodih Slovenska vas, Obrežje in Gruškovje."
+    \item \textbf{Target Report (excerpt):} "Cesta čez prelaz Vršič je zaradi zimskih razmer zaprta. Pred predorom Karavanke je približno kilometer in pol dolg zastoj tovornih vozil proti Avstriji. Na mejnem prehodu Obrežje vozniki osebnih vozil na vstop v Slovenijo čakajo 2 uri, v Gruškovju in Slovenski vasi pa pol ure..."
+    \item \textbf{Generated C2 (T=0.4, RP=1.2) (excerpt):} "Cesta čez prelaz Vršič je zaradi zimskih razmer zaprta. Pred predorom Karavanke je kilometer dolg zastoj tovornih vozil proti Avstriji. Na mejnem prehodu Obrežje vozniki osebnih vozil na vstop v državo čakajo do dve uri, v Gruškovju pa pol ure..." This report is largely accurate and stylistically appropriate.
+    \item \textbf{Generated C5 (T=1.0, RP=1.8) (excerpt):} "Cesta čez Prelazovma Korensko sedlo in Ljubelj sta zaradi zimskih pogojev še vedno zaprti; cesta cez azVršič pa bo do nadaljnjega ostala odprta samo po cestišču z verigami ali snegom polnimi pnevmatikah.. Predvidoma jutri popoldan bodo začeli s puljenjem prometa skozi PredoreKaravanké vozeča se trajala približno dve uri..." This output is significantly degraded, containing irrelevant information, misspellings, and non-Slovenian characters, making it unsuitable.
+\end{itemize}
+These examples underscore the importance of selecting appropriate generation parameters. While lower temperatures provide more factual and lexically similar outputs, they might sometimes lack diversity. However, in this task, factual accuracy and adherence to a specific radio report style are paramount, making lower temperature and moderate repetition penalty settings (like in C1 and C2) preferable. The post-processing step further helps to standardize the output format and correct minor, recurrent errors.
+
+\subsection*{Conclusion of Evaluation}
+The evaluation indicates that the fine-tuned GaMS-9B model, particularly with generation parameters set to a temperature of 0.4 and a repetition penalty of 1.2 (Configuration C2), produces the most balanced results, achieving good scores on both automated lexical metrics and LLM-based heuristic evaluations of factual accuracy and qualitative aspects. Increasing temperature and repetition penalty beyond these levels led to a noticeable decline in report quality, with higher configurations often producing irrelevant, factually incorrect, or stylistically poor outputs.
+
+\section*{Conclusion}
+
+This project successfully demonstrated the feasibility of automating Slovenian traffic news generation for RTV Slovenija by leveraging Large Language Models. We developed a comprehensive pipeline involving sophisticated data preprocessing to align raw traffic data with compiled RTV reports, explored initial prompt engineering strategies with various LLMs (including Gemini, Mistral-AI, and smaller models like Llama 3 8B and DeepSeek LLM 7B), and culminated in the successful fine-tuning of the Slovenian GaMS-9B-Instruct model using LoRA on an HPC cluster. The fine-tuned GaMS-9B model, particularly with a temperature of 0.4 and repetition penalty of 1.2, showed promising results in generating coherent and stylistically appropriate traffic reports, as validated by both quantitative metrics (BLEU, ROUGE, METEOR) and LLM-based heuristic evaluations. The rule-based post-processing step further enhanced the quality and consistency of the final outputs.
+
+While the initial objective of fine-tuning a model to learn the specific language, style, and domain knowledge was largely achieved, several avenues for future work and improvement have emerged from this project:
+
+\begin{itemize}
+\item \textbf{Model Refinement:} Explore advanced fine-tuning techniques (e.g., different PEFT methods, full fine-tuning) and optimize generation parameters for GaMS-9B.
+\item \textbf{Content Enhancement:} Improve report conciseness, relevance filtering, and deepen domain-specific understanding (e.g., abbreviations, radio-friendly location descriptions) via dataset enrichment or advanced prompting. Refine post-processing rules or explore learned correction models.
+\item \textbf{Evaluation and Operationalization:} Conduct comprehensive human evaluations for naturalness and accuracy. Perform detailed error analysis to guide further improvements. Investigate real-time pipeline integration for RTV Slovenija.
+\item \textbf{Long-term Extensions:} Pursue multilingual translation and Text-to-Speech (TTS) capabilities to broaden accessibility.
+\end{itemize}
+In conclusion, this project has laid a strong foundation for automated traffic news generation in Slovenian. The developed methods for data processing, prompt engineering, fine-tuning, and evaluation provide a clear path for future enhancements, with the ultimate goal of creating a robust, efficient, and high-quality system for RTV Slovenija.
 
 
 % Use the Methods section to describe what you did an how you did it -- in what way did you prepare the data, what algorithms did you use, how did you test various solutions ... Provide all the required details for a reproduction of your work.

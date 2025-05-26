@@ -7,7 +7,13 @@ from nltk.translate.meteor_score import meteor_score
 from rouge_score import rouge_scorer
 import pandas as pd
 
-df_results = pd.read_json("generated_reports_example.json")
+
+FILE_NAME = "generated_reports_57976558.json"
+EXTRACTED_FILE_NUMBER = FILE_NAME.split("_")[-1].split(".")[0]
+
+print(f"Evaluating reports from file: {FILE_NAME} with extracted file number: {EXTRACTED_FILE_NUMBER}")
+
+df_results = pd.read_json(FILE_NAME)
 col_names = ['timestamp', 'events', 'generated_report', 'target_report']
 
 def calc_bleu_score(true_report, generated_report):
@@ -65,7 +71,7 @@ print(f"Average ROUGE Score: ROUGE1: {str(avg_rouge['rouge1_f'])}, ROUGE2: {str(
 print(f"Average METEOR Score: {avg_meteor}")
 
 # SAVE 
-df_results.to_json("evaluation_results.json", orient="records", lines=True)
+df_results.to_json(f'evaluation_results-{EXTRACTED_FILE_NUMBER}.json', orient="records", lines=True)
 
 
 
