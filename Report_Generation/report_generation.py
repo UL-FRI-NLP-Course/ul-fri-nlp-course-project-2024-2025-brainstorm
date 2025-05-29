@@ -15,7 +15,7 @@ from FineTune.params_GaMS_9B import *
 
 
 #! Set path to the desierd model
-PATH_TO_MODEL ="/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct/checkpoints/checkpoint-epoch-2"
+PATH_TO_MODEL ="/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct/checkpoints/checkpoint-epoch-3"
 
 # TEST DATASET PATH
 PATH_TO_DATASET = "/d/hpc/projects/onj_fri/brainstorm/not_dataset_folder/not_test_data.csv"

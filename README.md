@@ -1,44 +1,146 @@
-# Natural language processing course: Automatic generation of Slovenian traffic news for RTV Slovenija
+# Natural language processing course: Automatic Generation of Slovenian Traffic News for RTV Slovenija
 
-INSTRUCTIONS:
+This project develops an automated system for generating Slovenian-language radio traffic reports for RTV Slovenija using Large Language Models (LLMs). The system transforms raw traffic event data into stylistically consistent and factually accurate reports suitable for radio broadcast.
 
-This project aims to use an existing LLM, »fine-tune« it, leverage prompt engineering techniques to generate short traffic reports. You are given Excel data from promet.si portal and your goal is to generate regular and important traffic news that are read by the radio presenters at RTV Slovenija. You also need to take into account guidelines and instructions to form the news. Currently, they hire students to manually check and type reports that are read every 30 minutes.
+## Project Overview
 
-Methodology
+The goal is to automate the manual process currently used by RTV Slovenija, where students check and type traffic reports every 30 minutes. The system uses fine-tuned LLMs with prompt engineering to generate short, radio-appropriate traffic reports from Excel data provided by the promet.si portal.
 
-1. Literature Review: Conduct a thorough review of existing research and select appropriate LLMs for the task. Review and prepare an exploratory report on the data provided.
+## Key Features
 
-2. Initial solution: Try to solve the task initially only by using prompt engineering techniques.
+- **Multi-stage Data Preprocessing**: Sophisticated pipeline to align raw traffic data with compiled RTV reports
+- **Fine-tuned GaMS-9B Model**: Slovenian-specific model optimized for traffic report generation using LoRA (Low-Rank Adaptation)
+- **HPC Cluster Integration**: Distributed training and inference on high-performance computing infrastructure
+- **Comprehensive Evaluation**: Both quantitative metrics (BLEU, ROUGE, METEOR) and LLM-based heuristic assessments
+- **Rule-based Post-processing**: Automated corrections for grammar, terminology, and style consistency
 
-3. Evaulation definition: Define (semi-)automatic evaluation criteria and implement it. Take the following into account: identification of important news, correct roads namings, correct filtering, text lengths and words, ...
+## Project Structure
 
-4. LLM (Parameter-efficient) fine-tuning: Improve an existing LLM to perform the task automatically. Provide an interface to do an interactive test.
+```
+├── data_preprocessing/          # Data cleaning and preparation scripts
+│   ├── data_cleanup.py         # Main data cleaning utilities
+│   ├── make_test_data.py       # Test dataset creation
+│   ├── primerjava_w_sentences_BERT_w_QA.py  # BERT-based semantic matching
+│   └── LLM_porocilo_extraction.py  # Event extraction using Gemini
+├── FineTune/                   # Fine-tuning implementation
+│   ├── finetune_GaMS_9B.py     # Main fine-tuning script
+│   ├── params_GaMS_9B.py       # Configuration and hyperparameters
+│   ├── data_loader.py          # Data loading utilities
+│   ├── fine_tune.sh            # SLURM batch script for training
+│   └── Instructions.ipynb      # Detailed setup instructions
+├── Generate_Report/            # Report generation and testing
+│   ├── report_generation.py    # Main generation script
+│   └── run_rep_gen.sh          # SLURM batch script for testing
+├── final_report_generation/    # Final optimized generation pipeline
+├── gemini-api/                 # Gemini API integration for prompting
+├── HPC/                        # HPC setup and configuration
+│   ├── HowToHPC.ipynb          # HPC usage instructions
+│   └── LLama_17B/              # Large model experiments
+├── evaluation_of_generated/    # Evaluation scripts and metrics
+├── report/                     # Academic report (LaTeX)
+├── previous_tesing/            # Archive of early experiments and tests
+└── Report_Generation/          # Additional generation utilities
+```
 
-5. Evaluation and Performance Analysis: Assess the effectiveness of each technique by measuring improvements in model performance, using appropriate automatic (P, R, F1) and human evaluation metrics.
+## Methodology
 
-Recommended Literature
+### 1. Data Preprocessing
+- **Event Extraction**: Used Gemini 2.0 Flash to extract structured events from RTV reports
+- **Semantic Matching**: Employed Slovene BERT model (`rokn/slovlo-v1`) to match raw traffic data with compiled reports
+- **Data Alignment**: Created input-output pairs for training by aggregating relevant traffic events
 
-- Lab session materials · RTV Slo data: LINK (zip format). The data consists of:
+### 2. Model Selection and Fine-tuning
+- **Base Model**: GaMS-9B-Instruct (Slovenian-specific LLM)
+- **Fine-tuning Method**: Parameter-Efficient Fine-Tuning (PEFT) using LoRA
+- **Training Environment**: HPC cluster with GPU acceleration
+- **Optimization**: Custom training loop with gradient accumulation and learning rate scheduling
 
-- Promet.si input resources (Podatki - PrometnoPorocilo_2022_2023_2024.xlsx).
+### 3. Prompt Engineering
+- **Initial Exploration**: Tested various models (Gemini, Mistral-AI, Llama, DeepSeek)
+- **Prompt Evolution**: From detailed API prompts to concise fine-tuning prompts
+- **Style Guidelines**: Incorporated RTV Slovenija's formatting and style requirements
 
-- RTV Slo news texts to be read through the radio stations (Podatki - rtvslo.si).
+### 4. Evaluation Framework
+- **Quantitative Metrics**: BLEU, ROUGE-1/2/L, METEOR scores
+- **Qualitative Assessment**: LLM-based heuristic evaluation using Gemini 2.0 Flash
+- **Parameter Optimization**: Tested multiple generation configurations (temperature, repetition penalty)
 
-- Additional instructions for the students that manually type news texts (PROMET, osnove.docx, PROMET.docx).
+## Key Results
 
+The fine-tuned GaMS-9B model achieved optimal performance with:
+- **Temperature**: 0.4
+- **Repetition Penalty**: 1.2
+- **ROUGE-L F1 Score**: 0.593
+- **High qualitative ratings** for factual accuracy and stylistic appropriateness
 
-EXTRA INSTRUCTIONS:
+## Usage
 
-Our group has a few questions regarding the project:
+### Prerequisites
+- Python 3.8+
+- PyTorch with CUDA support
+- Transformers library
+- Access to HPC cluster (for training)
 
-    Main Objective – What is the primary goal? Is the aim to generate traffic news articles from Excel documents? Are the RTF files in individual folders intended as reference examples (ground truth)?
-    Formatting Rules – The two Word documents in the root folder seem to contain guidelines for formatting news articles. Are they meant to define the required format?
-    News Linking – We noticed that some news articles reference previous ones. Should our solution detect and establish references to prior news articles, or is it sufficient to generate news solely based on individual Excel rows?
-    LLM Selection – Which language model should we use? Do we have full flexibility in choosing one (or trying several) and running pre-trained models on ARNES? We assume the OpenAI API is not a suitable option for this project.
-    RTV SLO News for Radio Broadcast (Data – rtvslo.si) – This was listed as an additional data source. Could you clarify what was meant by this? Was the intention to crawl rtvslo.si and extract traffic news data?
+### Quick Start
+1. **Data Preparation**:
+   ```bash
+   cd data_preprocessing
+   python data_cleanup.py
+   python make_test_data.py
+   ```
 
-    Main objective: You have input data (Podatki - PrometnoPorocilo_2022_2023_2024.xlsx) and goal is to generate outputs (folder Podatki - rtvslo.si). Beside that you need to analyze data first to find out correlations, when traffic reports are urgent, ... You can think that this is an automation of a job, currently done manually. You also have documents with guidelines - these are instructions for the human writers. 
-    Formatting Rules: Yes, take those also into account.
-    News Linking: See my first answer. All the projects are open, so your job is to do quality work, which you can justify. In real-world scenarios, your instructions will not be often precisely defined. If you will just generate text for specific rows without context and understanding, the results will not be best. So, try to infer first, which rows are correlated to (a) highly-important traffic announcements that are prepared immediately, and (b) standard half-hour reports.
-    LLM Selection: APIs can be directly used by anyone. Of course you can start with OpenAI or some pre-trained models (e.g., using Ollama library), and do some prompt engineering. The goal in this course is to do some NLP work, not only "use models or APIs" - you could do that easily also without taking attending this course. We will cover topics of fine-tuning the models in the following weeks during the lab sessions. 
-    RTV SLO News for Radio Broadcast (Data – rtvslo.si): As said, projects are open. If you can find also some other sources that are relevant, you can improve your results, even better. For example: maybe weather, calendar data (holidays), ... can help you with the project - you need to be creative. We will discuss these during defenses also, so you will get an impression of your work during the semester. 
+2. **Fine-tuning** (on HPC):
+   ```bash
+   cd FineTune
+   sbatch fine_tune.sh
+   ```
+
+3. **Generate Reports**:
+   ```bash
+   cd Generate_Report
+   sbatch run_rep_gen.sh
+   ```
+
+### Configuration
+Model and training parameters can be adjusted in [`FineTune/params_GaMS_9B.py`](FineTune/params_GaMS_9B.py).
+
+## Evaluation
+
+The system is evaluated using:
+- **Lexical Similarity**: BLEU, ROUGE, METEOR metrics against reference reports
+- **Content Quality**: Factual correctness, location accuracy, event type identification
+- **Style Assessment**: Conciseness, grammatical correctness, radio suitability
+
+## Future Work
+
+- **Model Refinement**: Explore advanced fine-tuning techniques and parameter optimization
+- **Content Enhancement**: Improve relevance filtering and domain-specific understanding
+- **Real-time Integration**: Develop pipeline for production deployment at RTV Slovenija
+- **Multilingual Extension**: Add translation capabilities for broader accessibility
+
+## Data Sources
+
+- **Input Data**: Traffic event data from promet.si portal (Excel format)
+- **Target Output**: RTV Slovenija radio traffic reports
+- **Guidelines**: Official formatting and style instructions for human reporters
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Academic Report
+
+A comprehensive academic report detailing the methodology, evaluation, and results is available in the [`report/`](report/) directory.
+
+## Notes
+
+- All early experiments and prototype code are archived in [`previous_tesing/`](previous_tesing/)
+- HPC-specific setup instructions are available in [`HPC/HowToHPC.ipynb`](HPC/HowToHPC.ipynb)
+- Detailed fine-tuning instructions can be found in [`FineTune/Instructions.ipynb`](FineTune/Instructions.ipynb)
+
+---
+
+**Authors**: Aljaž Justin, Edin Ćehić, Lea Briški  
+**Advisor**: Slavko Žitnik  
+**Institution**: University of Ljubljana, Faculty of Computer and Information Science  
+**Course**: Natural Language Processing (2024/2025)
