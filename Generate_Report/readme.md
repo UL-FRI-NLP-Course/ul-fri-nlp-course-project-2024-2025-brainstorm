@@ -16,7 +16,7 @@ When running the `run_rep_gen.sh` script on the HPC:
 
 ### Model Path
 ```
-PATH_TO_MODEL = "/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct/checkpoints/checkpoint-epoch-1"
+PATH_TO_MODEL = "/d/hpc/projects/onj_fri/brainstorm/FineTune_models/GaMS-9B-Instruct/checkpoints/checkpoint-epoch-3"
 ```
 
 ### Test Dataset Path
