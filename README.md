@@ -45,8 +45,9 @@ The goal is to automate the manual process currently used by RTV Slovenija, wher
 ## Methodology
 
 ### 1. Data Preprocessing
-- **Event Extraction**: Used Gemini 2.0 Flash to extract structured events from RTV reports
-- **Semantic Matching**: Employed Slovene BERT model (`rokn/slovlo-v1`) to match raw traffic data with compiled reports
+- **Event Extraction**: Used Gemini 2.0 Flash and heuristic approach to extract structured events from RTV reports
+- **Semantic Matching**: Employed Slovenian BERT model (`rokn/slovlo-v1`) for embedding traffic event data and semantic 
+    matching of input and report event data based on calculating cosine similarity between embeddings
 - **Data Alignment**: Created input-output pairs for training by aggregating relevant traffic events
 
 ### 2. Model Selection and Fine-tuning
@@ -57,12 +58,12 @@ The goal is to automate the manual process currently used by RTV Slovenija, wher
 
 ### 3. Prompt Engineering
 - **Initial Exploration**: Tested various models (Gemini, Mistral-AI, Llama, DeepSeek)
-- **Prompt Evolution**: From detailed API prompts to concise fine-tuning prompts
+- **Prompt Evolution**: From detailed API prompts to concise, tailored fine-tuning prompts
 - **Style Guidelines**: Incorporated RTV Slovenija's formatting and style requirements
 
 ### 4. Evaluation Framework
 - **Quantitative Metrics**: BLEU, ROUGE-1/2/L, METEOR scores
-- **Qualitative Assessment**: LLM-based heuristic evaluation using Gemini 2.0 Flash
+- **Qualitative Assessment**: LLM-based heuristic qualitative evaluation using Gemini 2.0 Flash
 - **Parameter Optimization**: Tested multiple generation configurations (temperature, repetition penalty)
 
 ## Key Results
